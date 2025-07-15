@@ -1,0 +1,157 @@
+/* Modern IMSS Style CSS */
+:root {
+    --primary-red: #E60012;
+    --primary-black: #000000;
+    --primary-white: #FFFFFF;
+    --light-gray: #f8f9fa;
+    --border-gray: #e9ecef;
+    --text-dark: #212529;
+    --text-muted: #6c757d;
+}
+
+body {
+    background-color: var(--primary-white);
+    color: var(--text-dark);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    background-color: var(--primary-white);
+    border: 1px solid var(--border-gray);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.card-header {
+    background: linear-gradient(135deg, var(--primary-red) 0%, #cc0010 100%);
+    color: var(--primary-white);
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    font-weight: 600;
+    padding: 1rem 1.25rem;
+}
+
+.card-body {
+    background-color: var(--primary-white);
+    color: var(--text-dark);
+    padding: 1.5rem;
+}
+
+.card-footer {
+    background-color: var(--netflix-black);
+    border-top: 1px solid #333;
+}
+
+.navbar-dark {
+    background-color: var(--netflix-black) !important;
+}
+
+.sb-sidenav-dark {
+    background-color: var(--netflix-black);
+}
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link {
+    color: var(--netflix-white);
+}
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link:hover {
+    background-color: var(--netflix-red);
+    color: var(--netflix-white);
+}
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link.active {
+    background-color: var(--netflix-red);
+    color: var(--netflix-white);
+}
+
+.btn-primary {
+    background-color: var(--netflix-red);
+    border-color: var(--netflix-red);
+}
+
+.btn-primary:hover {
+    background-color: #b2070f;
+    border-color: #b2070f;
+}
+
+.table {
+    color: var(--netflix-white);
+}
+
+.table thead th {
+    background-color: var(--netflix-black);
+    border-color: #333;
+    color: var(--netflix-white);
+}
+
+.table tbody tr {
+    background-color: var(--netflix-black);
+}
+
+.table tbody tr:hover {
+    background-color: #1a1a1a;
+}
+
+.form-control {
+    background-color: var(--netflix-black);
+    border-color: #333;
+    color: var(--netflix-white);
+}
+
+.form-control:focus {
+    background-color: var(--netflix-black);
+    border-color: var(--netflix-red);
+    color: var(--netflix-white);
+    box-shadow: 0 0 0 0.2rem rgba(229, 9, 20, 0.25);
+}
+
+.modal-content {
+    background-color: var(--netflix-black);
+    border: 1px solid #333;
+}
+
+.modal-header {
+    background-color: var(--netflix-red);
+    border-bottom: 1px solid #333;
+}
+
+.modal-body {
+    background-color: var(--netflix-black);
+    color: var(--netflix-white);
+}
+
+.modal-footer {
+    background-color: var(--netflix-black);
+    border-top: 1px solid #333;
+}
+
+.breadcrumb {
+    background-color: var(--netflix-black);
+}
+
+.breadcrumb-item a {
+    color: var(--netflix-red);
+}
+
+.breadcrumb-item.active {
+    color: var(--netflix-light-gray);
+}
+
+.dropdown-menu {
+    background-color: var(--netflix-black);
+    border: 1px solid #333;
+}
+
+.dropdown-item {
+    color: var(--netflix-white);
+}
+
+.dropdown-item:hover {
+    background-color: var(--netflix-red);
+    color: var(--netflix-white);
+}
+
+.dropdown-divider {
+    border-color: #333;
+} 

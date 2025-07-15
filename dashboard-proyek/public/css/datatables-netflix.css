@@ -1,0 +1,128 @@
+/* DataTables IMSS Style CSS */
+.dataTables_wrapper {
+    color: var(--text-dark);
+    background: var(--primary-white);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.dataTables_length {
+    color: var(--text-dark);
+}
+
+.dataTables_length select {
+    background-color: var(--primary-white);
+    border: 2px solid var(--border-gray);
+    border-radius: 6px;
+    color: var(--text-dark);
+    padding: 0.5rem;
+}
+
+.dataTables_filter {
+    color: var(--text-dark);
+}
+
+.dataTables_filter input {
+    background-color: var(--primary-white);
+    border: 2px solid var(--border-gray);
+    border-radius: 6px;
+    color: var(--text-dark);
+    padding: 0.5rem;
+}
+
+.dataTables_filter input:focus {
+    background-color: var(--primary-white);
+    border-color: var(--primary-red);
+    color: var(--text-dark);
+    box-shadow: 0 0 0 0.2rem rgba(230, 0, 18, 0.25);
+}
+
+.dataTables_info {
+    color: var(--text-muted);
+}
+
+.dataTables_paginate {
+    color: var(--text-dark);
+}
+
+.dataTables_paginate .paginate_button {
+    background-color: var(--netflix-black);
+    border-color: #333;
+    color: var(--netflix-white) !important;
+}
+
+.dataTables_paginate .paginate_button:hover {
+    background-color: var(--netflix-red) !important;
+    border-color: var(--netflix-red);
+    color: var(--netflix-white) !important;
+}
+
+.dataTables_paginate .paginate_button.current {
+    background-color: var(--netflix-red) !important;
+    border-color: var(--netflix-red);
+    color: var(--netflix-white) !important;
+}
+
+.dataTables_paginate .paginate_button.disabled {
+    background-color: var(--netflix-black);
+    border-color: #333;
+    color: var(--netflix-light-gray) !important;
+}
+
+.dataTables_processing {
+    background-color: var(--netflix-black);
+    color: var(--netflix-white);
+}
+
+.dataTables_empty {
+    color: var(--netflix-light-gray);
+}
+
+table.dataTable {
+    background-color: var(--netflix-black);
+    border-color: #333;
+}
+
+table.dataTable thead th {
+    background-color: var(--netflix-black);
+    border-color: #333;
+    color: var(--netflix-white);
+}
+
+table.dataTable tbody tr {
+    background-color: var(--netflix-black);
+}
+
+table.dataTable tbody tr:hover {
+    background-color: #1a1a1a;
+}
+
+table.dataTable tbody td {
+    border-color: #333;
+    color: var(--netflix-white);
+}
+
+table.dataTable tbody tr.odd {
+    background-color: var(--netflix-black);
+}
+
+table.dataTable tbody tr.even {
+    background-color: #0a0a0a;
+}
+
+table.dataTable tbody tr.odd:hover,
+table.dataTable tbody tr.even:hover {
+    background-color: #1a1a1a;
+}
+
+.dataTables_scrollHead {
+    background-color: var(--netflix-black);
+}
+
+.dataTables_scrollBody {
+    background-color: var(--netflix-black);
+}
+
+.dataTables_scrollFoot {
+    background-color: var(--netflix-black);
+} 

@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Sidebar hide/show logic */
+#layoutSidenav_nav {
+    transition: transform 0.3s cubic-bezier(.4,2,.6,1);
+    will-change: transform;
+}
+.sidebar-hidden {
+    transform: translateX(-100%);
+}
+
+:root {
+    --primary-red: #E30613;
+    --primary-black: #000000;
+    --primary-white: #FFFFFF;
+    --light-gray: #F5F5F5;
+    --border-gray: #E0E0E0;
+    --text-dark: #000000;
+    --text-muted: #6c757d;
+}
+
+.bg-primary, .bg-red, .bg-danger, .bg-success, .bg-warning, .bg-info {
+    background-color: var(--primary-red) !important;
+    color: var(--primary-white) !important;
+}
+
+.text-primary, .text-red, .text-danger, .text-success, .text-warning, .text-info {
+    color: var(--primary-red) !important;
+}
+
+.bg-black, .text-black {
+    background-color: var(--primary-black) !important;
+    color: var(--primary-black) !important;
+}
+
+.bg-white, .text-white {
+    background-color: var(--primary-white) !important;
+    color: var(--primary-white) !important;
+}
+
+.border-primary, .border-danger, .border-success, .border-warning, .border-info {
+    border-color: var(--primary-red) !important;
+}
+
+.border-black {
+    border-color: var(--primary-black) !important;
+}
+
+.border-white {
+    border-color: var(--primary-white) !important;
+}
