@@ -380,7 +380,7 @@ class dashboardController extends Controller
         
         // Data pie chart status proyek dari progress di tabel
         $progressMap = [
-            25 => '25% (SPPH Saja)',
+            25 => '25% (SPPH)', //test
             50 => '50% (SPPH + SPH)',
             75 => '75% (SPPH + SPH + Nego)',
             100 => '100% (Selesai/Kontrak)'
