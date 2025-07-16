@@ -11,26 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Ubah kolom dokumen_sph di tabel sphs
-        if (Schema::hasTable('sphs')) {
-            Schema::table('sphs', function (Blueprint $table) {
-                $table->json('dokumen_sph')->nullable()->change();
-            });
-        }
-
-        // Ubah kolom dokumen_nego di tabel negos
-        if (Schema::hasTable('negos')) {
-            Schema::table('negos', function (Blueprint $table) {
-                $table->json('dokumen_nego')->nullable()->change();
-            });
-        }
-
-        // Ubah kolom dokumen_kontrak di tabel kontraks
-        if (Schema::hasTable('kontraks')) {
-            Schema::table('kontraks', function (Blueprint $table) {
-                $table->json('dokumen_kontrak')->nullable()->change();
+        Schema::table('spphs', function (Blueprint $table) {
+            $table->string('subkontraktor')->nullable()->after('nomor_spph');
+            $table->string('nama_proyek')->nullable()->after('subkontraktor');
         });
-        }
     }
 
     /**
@@ -38,25 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Kembalikan kolom dokumen_sph di tabel sphs
-        if (Schema::hasTable('sphs')) {
-            Schema::table('sphs', function (Blueprint $table) {
-                $table->string('dokumen_sph')->nullable()->change();
-            });
-        }
-
-        // Kembalikan kolom dokumen_nego di tabel negos
-        if (Schema::hasTable('negos')) {
-            Schema::table('negos', function (Blueprint $table) {
-                $table->string('dokumen_nego')->nullable()->change();
-            });
-        }
-
-        // Kembalikan kolom dokumen_kontrak di tabel kontraks
-        if (Schema::hasTable('kontraks')) {
-            Schema::table('kontraks', function (Blueprint $table) {
-                $table->string('dokumen_kontrak')->nullable()->change();
+        Schema::table('spphs', function (Blueprint $table) {
+            $table->dropColumn(['subkontraktor', 'nama_proyek']);
         });
-        }
     }
 };

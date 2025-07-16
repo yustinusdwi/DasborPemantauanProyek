@@ -56,59 +56,62 @@ class dashboardController extends Controller
         $kontrakList = \App\Models\Kontrak::orderBy('created_at', 'desc')->get();
         $projectData = [];
         foreach ($spphList as $spph) {
-            $sph = $sphList->firstWhere('uraian', $spph->uraian);
-            $nego = $negoList->firstWhere('uraian', $spph->uraian);
-            $kontrak = $kontrakList->firstWhere('uraian', $spph->uraian);
+            $sph = $sphList->firstWhere('nama_proyek', $spph->nama_proyek);
+            $nego = $negoList->firstWhere('nama_proyek', $spph->nama_proyek);
+            $kontrak = $kontrakList->firstWhere('nama_proyek', $spph->nama_proyek);
 
-            // Hitung progress berdasarkan jumlah kolom terisi
-            $step = 1; // SPPH selalu ada
-            $progressClass = 'bg-secondary';
-            if ($sph) {
-                $step++;
-                $progressClass = 'bg-primary';
-            }
-            if ($nego) {
-                $step++;
-                $progressClass = 'bg-warning';
-            }
+            // Hitung progress sesuai permintaan baru
             if ($kontrak) {
-                $step++;
+                $progress = 100;
                 $progressClass = 'bg-success';
+            } elseif ($nego) {
+                $progress = 66;
+                $progressClass = 'bg-warning';
+            } elseif ($sph) {
+                $progress = 33;
+                $progressClass = 'bg-primary';
+            } else {
+                $progress = 0;
+                $progressClass = 'bg-danger'; // 0% progress is now red
             }
-            $progress = $step * 25;
-            if ($progress > 100) $progress = 100;
 
             $projectData[] = [
-                'nama' => $spph->uraian,
+                'nama' => $spph->nama_proyek ?? $spph->uraian,
                 'spph' => '<a href="#" class="proyek-check" data-tipe="spph" data-info="' . htmlspecialchars(json_encode([
                     'no_spph' => $spph->nomor_spph,
+                    'subkontraktor' => $spph->subkontraktor,
                     'tanggal' => $spph->tanggal,
                     'batas_akhir' => $spph->batas_akhir_sph,
                     'uraian' => $spph->uraian,
-                    'file_spph' => $spph->dokumen_spph,
-                    'file_sow' => $spph->dokumen_sow,
-                    'file_lain' => $spph->dokumen_lain,
-                ]), ENT_QUOTES, 'UTF-8') . '"><span style="color:green;font-size:1.2em;">&#10003;</span></a>',
+                    'nama_proyek' => $spph->nama_proyek,
+                ]), ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($spph->nomor_spph) . '</a>',
                 'sph' => $sph ? '<a href="#" class="proyek-check" data-tipe="sph" data-info="' . htmlspecialchars(json_encode([
                     'no_sph' => $sph->nomor_sph,
+                    'subkontraktor' => $sph->subkontraktor,
                     'tanggal' => $sph->tanggal,
                     'uraian' => $sph->uraian,
                     'harga_total' => $sph->harga_total,
                     'file_sph' => $sph->dokumen_sph,
+                    'nama_proyek' => $sph->nama_proyek,
                 ]), ENT_QUOTES, 'UTF-8') . '"><span style="color:green;font-size:1.2em;">&#10003;</span></a>' : '-',
                 'nego' => $nego ? '<a href="#" class="proyek-check" data-tipe="nego" data-info="' . htmlspecialchars(json_encode([
                     'no_nego' => $nego->nomor_nego,
+                    'subkontraktor' => $nego->subkontraktor,
                     'tanggal' => $nego->tanggal,
                     'uraian' => $nego->uraian,
                     'harga_total' => $nego->harga_total,
                     'file_nego' => $nego->dokumen_nego,
+                    'nama_proyek' => $nego->nama_proyek,
                 ]), ENT_QUOTES, 'UTF-8') . '"><span style="color:green;font-size:1.2em;">&#10003;</span></a>' : '-',
                 'kontrak' => $kontrak ? '<a href="#" class="proyek-check" data-tipe="kontrak" data-info="' . htmlspecialchars(json_encode([
                     'no_kontrak' => $kontrak->nomor_kontrak,
+                    'subkontraktor' => $kontrak->subkontraktor,
                     'tanggal' => $kontrak->tanggal,
+                    'batas_akhir' => $kontrak->batas_akhir_kontrak,
                     'uraian' => $kontrak->uraian,
                     'harga_total' => $kontrak->harga_total,
                     'file_kontrak' => $kontrak->dokumen_kontrak,
+                    'nama_proyek' => $kontrak->nama_proyek,
                 ]), ENT_QUOTES, 'UTF-8') . '"><span style="color:green;font-size:1.2em;">&#10003;</span></a>' : '-',
                 'progress' => $progress,
                 'progress_class' => $progressClass,
@@ -126,7 +129,8 @@ class dashboardController extends Controller
                 'tanggal_kontrak' => '',
                 'status' => '',
                 'estimasi_nilai' => 0,
-                'progress' => 0
+                'progress' => 0,
+                'progress_class' => 'bg-danger', // Tambahkan default agar tidak error
             ]];
         }
         return $projectData;
@@ -142,7 +146,7 @@ class dashboardController extends Controller
                 'no_spph' => 'SPPH-001',
                 'tanggal' => '2024-01-15',
                 'batas_akhir' => '2024-01-30',
-                'nama_pekerjaan' => 'Pembangunan Gedung A',
+                'nama_proyek' => 'Pembangunan Gedung A',
                 'file_spph' => 'SPPH-001.pdf',
                 'file_lampiran' => 'Lampiran-SPPH-001.zip',
                 'progress' => 75
@@ -151,7 +155,7 @@ class dashboardController extends Controller
                 'no_spph' => 'SPPH-002',
                 'tanggal' => '2024-02-20',
                 'batas_akhir' => '2024-03-05',
-                'nama_pekerjaan' => 'Renovasi Kantor B',
+                'nama_proyek' => 'Renovasi Kantor B',
                 'file_spph' => 'SPPH-002.pdf',
                 'file_lampiran' => 'Lampiran-SPPH-002.zip',
                 'progress' => 25
@@ -160,7 +164,7 @@ class dashboardController extends Controller
                 'no_spph' => 'SPPH-003',
                 'tanggal' => '2024-03-10',
                 'batas_akhir' => '2024-03-25',
-                'nama_pekerjaan' => 'Instalasi Sistem IT',
+                'nama_proyek' => 'Instalasi Sistem IT',
                 'file_spph' => 'SPPH-003.pdf',
                 'file_lampiran' => 'Lampiran-SPPH-003.zip',
                 'progress' => 90
@@ -169,7 +173,7 @@ class dashboardController extends Controller
                 'no_spph' => 'SPPH-004',
                 'tanggal' => '2024-01-05',
                 'batas_akhir' => '2024-01-20',
-                'nama_pekerjaan' => 'Pembangunan Jembatan',
+                'nama_proyek' => 'Pembangunan Jembatan',
                 'file_spph' => 'SPPH-004.pdf',
                 'file_lampiran' => 'Lampiran-SPPH-004.zip',
                 'progress' => 100
@@ -178,7 +182,7 @@ class dashboardController extends Controller
                 'no_spph' => 'SPPH-005',
                 'tanggal' => '2024-04-01',
                 'batas_akhir' => '2024-04-15',
-                'nama_pekerjaan' => 'Pembangunan Mall',
+                'nama_proyek' => 'Pembangunan Mall',
                 'file_spph' => 'SPPH-005.pdf',
                 'file_lampiran' => 'Lampiran-SPPH-005.zip',
                 'progress' => 10
@@ -187,7 +191,7 @@ class dashboardController extends Controller
                 'no_spph' => 'SPPH-006',
                 'tanggal' => '2024-03-25',
                 'batas_akhir' => '2024-04-10',
-                'nama_pekerjaan' => 'Renovasi Hotel',
+                'nama_proyek' => 'Renovasi Hotel',
                 'file_spph' => 'SPPH-006.pdf',
                 'file_lampiran' => 'Lampiran-SPPH-006.zip',
                 'progress' => 45
@@ -371,21 +375,64 @@ class dashboardController extends Controller
      */
     private function getChartData(): array
     {
+        // Untuk status proyek, tetap gunakan getProjectData()
         $projectData = $this->getProjectData();
+        // Untuk pie chart subkontraktor, gunakan data dari tabel SPH
+        $sphList = \App\Models\Sph::all();
+        $subkontraktorCounts = [];
+        foreach ($sphList as $sph) {
+            $subkon = strtoupper(trim($sph->subkontraktor ?? 'Tidak Diketahui'));
+            if (!isset($subkontraktorCounts[$subkon])) {
+                $subkontraktorCounts[$subkon] = 0;
+            }
+            $subkontraktorCounts[$subkon]++;
+        }
+        // Daftar subkontraktor utama
+        $mainSubs = ['INKA', 'IMS', 'IMST', 'IMSC', 'REKA'];
+        $mainCounts = array_fill_keys($mainSubs, 0);
+        $otherCount = 0;
+        foreach ($subkontraktorCounts as $subkon => $count) {
+            if (in_array($subkon, $mainSubs)) {
+                $mainCounts[$subkon] += $count;
+            } else {
+                $otherCount += $count;
+            }
+        }
+        $subkonLabels = array_keys($mainCounts);
+        $subkonData = array_values($mainCounts);
+        if ($otherCount > 0) {
+            $subkonLabels[] = 'Lainnya';
+            $subkonData[] = $otherCount;
+        }
+        // Sinkronisasi warna dan struktur dengan status_pie_chart
+        $colorPalette = [
+            'rgba(255, 99, 132, 0.8)',
+            'rgba(54, 162, 235, 0.8)',
+            'rgba(255, 206, 86, 0.8)',
+            'rgba(75, 192, 192, 0.8)',
+            'rgba(153, 102, 255, 0.8)',
+            'rgba(255, 159, 64, 0.8)',
+            'rgba(108, 117, 125, 0.8)',
+            'rgba(40, 167, 69, 0.8)',
+            'rgba(23, 162, 184, 0.8)',
+            'rgba(220, 53, 69, 0.8)',
+            'rgba(255, 193, 7, 0.8)',
+            'rgba(0, 123, 255, 0.8)'
+        ];
         
-        // Data untuk pie chart customer
-        $customerData = collect($projectData)->groupBy('customer')->map(function ($projects) {
-            return count($projects);
-        })->toArray();
+        // Extend color palette if needed
+        while (count($colorPalette) < count($subkonLabels)) {
+            $colorPalette[] = sprintf('rgba(%d, %d, %d, 0.8)', rand(0,255), rand(0,255), rand(0,255));
+        }
         
         // Data pie chart status proyek dari progress di tabel
         $progressMap = [
-            25 => '25% (SPPH)', //test
-            50 => '50% (SPPH + SPH)',
-            75 => '75% (SPPH + SPH + Nego)',
-            100 => '100% (Selesai/Kontrak)'
+            0 => '0% (Belum Mulai)',
+            33 => '33% (SPH)',
+            66 => '66% (SPH + Nego)',
+            100 => '100% (Kontrak)'
         ];
-        $progressCounts = [25 => 0, 50 => 0, 75 => 0, 100 => 0];
+        $progressCounts = [0 => 0, 33 => 0, 66 => 0, 100 => 0];
         foreach ($projectData as $row) {
             $p = (int)($row['progress'] ?? 0);
             if (isset($progressCounts[$p])) {
@@ -399,22 +446,16 @@ class dashboardController extends Controller
             $statusCounts[] = $count;
         }
         $statusColors = [
-            'rgba(255, 193, 7, 0.8)',   // 25% - Kuning
-            'rgba(54, 162, 235, 0.8)',  // 50% - Biru
-            'rgba(255, 206, 86, 0.8)',  // 75% - Orange
-            'rgba(40, 167, 69, 0.8)'    // 100% - Hijau
+            'rgba(108, 117, 125, 0.8)',   // Abu
+            'rgba(54, 162, 235, 0.8)',    // Biru
+            'rgba(255, 193, 7, 0.8)',     // Kuning
+            'rgba(40, 167, 69, 0.8)'      // Hijau
         ];
         return [
             'customer_pie_chart' => [
-                'labels' => array_keys($customerData),
-                'data' => array_values($customerData),
-                'colors' => [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(153, 102, 255, 0.8)'
-                ]
+            'labels' => $subkonLabels,
+            'data' => $subkonData,
+            'colors' => array_slice($colorPalette, 0, count($subkonLabels))
             ],
             'status_pie_chart' => [
                 'labels' => $statusLabels,
@@ -478,7 +519,7 @@ class dashboardController extends Controller
                 'customer' => $project['customer'],
                 'nomor_kontrak' => $project['nomor_kontrak'],
                 'tanggal_kontrak' => $project['tanggal_kontrak'],
-                'status_badge' => self::getStatusBadge($project['status']),
+                'status' => self::getStatusBadge($project['status']),
                 'estimasi_nilai_formatted' => self::formatCurrency($project['estimasi_nilai']),
                 'progress_bar' => self::getProgressBar($project['progress'], $project['status'])
             ];

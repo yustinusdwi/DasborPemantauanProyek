@@ -26,7 +26,9 @@
                             <thead>
                                 <tr>
                                     <th>Nomor Negosiasi</th>
+                                    <th>Subkontraktor</th>
                                     <th>Tanggal</th>
+                                    <th>Nama Proyek</th>
                                     <th>Uraian</th>
                                     <th>Harga Total</th>
                                     <th>Berkas Negosiasi</th>
@@ -36,8 +38,10 @@
                                 @foreach($negoData as $nego)
                                 <tr>
                                     <td>{{ $nego['no_nego'] }}</td>
+                                    <td>{{ $nego['subkontraktor'] }}</td>
                                     <td>{{ $nego['tanggal'] }}</td>
-                                    <td>{{ $nego['deskripsi_pekerjaan'] }}</td>
+                                    <td>{{ $nego['nama_proyek'] }}</td>
+                                    <td>{{ $nego['uraian'] }}</td>
                                     <td>{{ \App\Http\Controllers\dashboardController::formatCurrency($nego['harga_total']) }}</td>
                                     <td>
                                         @if($nego['file_nego'] && isset($nego['file_nego']['path']))

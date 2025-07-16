@@ -36,8 +36,10 @@
                             <thead>
                                 <tr>
                                     <th>Nomor SPPH</th>
+                                    <th>Subkontraktor</th>
                                     <th>Tanggal</th>
-                                    <th>Batas Akhir SPH</th>
+                                    <th>Batas Akhir SPPH</th>
+                                    <th>Nama Proyek</th>
                                     <th>Uraian</th>
                                     <th>Berkas SPPH</th>
                                     <th>Berkas SOW</th>
@@ -48,9 +50,11 @@
                                 @foreach($spphData as $spph)
                                 <tr>
                                     <td>{{ $spph['no_spph'] }}</td>
+                                    <td>{{ $spph['subkontraktor'] }}</td>
                                     <td>{{ $spph['tanggal'] }}</td>
                                     <td>{{ $spph['batas_akhir'] }}</td>
-                                    <td>{{ $spph['nama_pekerjaan'] }}</td>
+                                    <td>{{ $spph['nama_proyek'] }}</td>
+                                    <td>{{ $spph['uraian'] }}</td>
                                     <td>
                                         @if($spph['file_spph'] && isset($spph['file_spph']['path']))
                                             <div class="mb-2">

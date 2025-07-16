@@ -29,7 +29,15 @@ class spphController extends Controller
                 }
                 return null;
             };
-            
+            // Pastikan dokumen_spph dan dokumen_sow selalu array
+            $dokumen_spph = $spph->dokumen_spph;
+            if (is_string($dokumen_spph)) {
+                $dokumen_spph = json_decode($dokumen_spph, true);
+            }
+            $dokumen_sow = $spph->dokumen_sow;
+            if (is_string($dokumen_sow)) {
+                $dokumen_sow = json_decode($dokumen_sow, true);
+            }
             $dokumen_lain = [];
             if (is_array($spph->dokumen_lain)) {
                 foreach ($spph->dokumen_lain as $file) {
@@ -37,7 +45,6 @@ class spphController extends Controller
                     if ($f) $dokumen_lain[] = $f;
                 }
             } elseif (is_string($spph->dokumen_lain)) {
-                // Coba decode JSON untuk dokumen_lain
                 $decoded = json_decode($spph->dokumen_lain, true);
                 if (is_array($decoded)) {
                     foreach ($decoded as $file) {
@@ -46,14 +53,15 @@ class spphController extends Controller
                     }
                 }
             }
-            
             return [
                 'no_spph' => $spph->nomor_spph,
+                'subkontraktor' => $spph->subkontraktor ?? '',
                 'tanggal' => $spph->tanggal,
                 'batas_akhir' => $spph->batas_akhir_sph,
-                'nama_pekerjaan' => $spph->uraian,
-                'file_spph' => $normalizeFile($spph->dokumen_spph),
-                'file_sow' => $normalizeFile($spph->dokumen_sow),
+                'nama_proyek' => $spph->nama_proyek ?? '',
+                'uraian' => $spph->uraian,
+                'file_spph' => $normalizeFile($dokumen_spph),
+                'file_sow' => $normalizeFile($dokumen_sow),
                 'file_lain' => $dokumen_lain,
             ];
         })->toArray();

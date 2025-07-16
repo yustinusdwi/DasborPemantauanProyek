@@ -30,8 +30,10 @@ class negoController extends Controller
             };
             return [
                 'no_nego' => $nego->nomor_nego,
+                'subkontraktor' => $nego->subkontraktor,
                 'tanggal' => $nego->tanggal,
-                'deskripsi_pekerjaan' => $nego->uraian,
+                'nama_proyek' => $nego->nama_proyek,
+                'uraian' => $nego->uraian,
                 'harga_total' => $nego->harga_total,
                 'file_nego' => $normalizeFile($nego->dokumen_nego),
             ];

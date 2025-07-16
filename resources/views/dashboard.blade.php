@@ -69,10 +69,26 @@
                                 <div class="card mb-4">
                                     <div class="card-header">
                                         <i class="fas fa-chart-pie mr-1"></i>
-                                        Sebaran Proyek per Pelanggan
+                                        Sebaran Proyek per Subkontraktor
                                     </div>
                                     <div class="card-body">
-                                        <canvas id="customerPieChart" width="100%" height="40"></canvas>
+                                        <div style="position:relative;min-height:220px;max-height:220px;display:flex;align-items:center;justify-content:center;">
+                                            <canvas id="customerPieChart" width="100%" height="200" style="height:200px;width:100%;max-width:100%;"></canvas>
+                                        </div>
+                                        @if(isset($chartData['customer_pie_chart']))
+                                            @php $allZero = array_sum($chartData['customer_pie_chart']['data']) == 0; @endphp
+                                            <div class="chart-desc">
+                                                @if($allZero)
+                                                    <div class="text-center text-muted mt-2">Tidak ada data untuk divisualisasikan</div>
+                                                @else
+                                                    <ul class="mt-3" style="list-style:none;padding-left:0;">
+                                                        @foreach($chartData['customer_pie_chart']['labels'] as $i => $label)
+                                                            <li><strong>{{ $label }}:</strong> {{ $chartData['customer_pie_chart']['data'][$i] }} proyek</li>
+                                                        @endforeach
+                                                    </ul>
+                                                @endif
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -83,8 +99,8 @@
                                         Status Proyek
                                     </div>
                                     <div class="card-body">
-                                        <div class="chart-area">
-                                            <canvas id="statusPieChart" width="100%" height="200"></canvas>
+                                        <div style="position:relative;min-height:220px;max-height:220px;display:flex;align-items:center;justify-content:center;">
+                                            <canvas id="statusPieChart" width="100%" height="200" style="height:200px;width:100%;max-width:100%;"></canvas>
                                         </div>
                                         @if(isset($chartData['status_pie_chart']))
                                             @php $allZero = array_sum($chartData['status_pie_chart']['data']) == 0; @endphp
@@ -236,79 +252,7 @@ $(document).ready(function() {
     });
 
     // PIE CHART CUSTOMER
-    if (chartData && chartData.customer_pie_chart) {
-        var ctxCustomer = document.getElementById('customerPieChart').getContext('2d');
-        new Chart(ctxCustomer, {
-            type: 'pie',
-            data: {
-                labels: chartData.customer_pie_chart.labels,
-                datasets: [{
-                    data: chartData.customer_pie_chart.data,
-                    backgroundColor: chartData.customer_pie_chart.colors,
-                    borderWidth: 2,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true
-                    }
-                },
-                tooltips: {
-                    callbacks: {
-                        label: function(tooltipItem, data) {
-                            const dataset = data.datasets[tooltipItem.datasetIndex];
-                            const total = dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((dataset.data[tooltipItem.index] / total) * 100).toFixed(1);
-                            return data.labels[tooltipItem.index] + ': ' + dataset.data[tooltipItem.index] + ' proyek (' + percentage + '%)';
-                        }
-                    }
-                }
-            }
-        });
-    }
-    // PIE CHART STATUS
-    if (chartData && chartData.status_pie_chart) {
-        var ctxStatus = document.getElementById('statusPieChart').getContext('2d');
-        new Chart(ctxStatus, {
-            type: 'pie',
-            data: {
-                labels: chartData.status_pie_chart.labels,
-                datasets: [{
-                    data: chartData.status_pie_chart.data,
-                    backgroundColor: chartData.status_pie_chart.colors,
-                    borderWidth: 2,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true
-                    }
-                },
-                tooltips: {
-                    callbacks: {
-                        label: function(tooltipItem, data) {
-                            const dataset = data.datasets[tooltipItem.datasetIndex];
-                            const total = dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((dataset.data[tooltipItem.index] / total) * 100).toFixed(1);
-                            return data.labels[tooltipItem.index] + ': ' + dataset.data[tooltipItem.index] + ' proyek (' + percentage + '%)';
-                        }
-                    }
-                }
-            }
-        });
-    }
+    // Hapus seluruh blok PIE CHART CUSTOMER di bawah $(document).ready jika sudah ada inisialisasi Chart.js di dashboard-controller.js.
     // Event pop up info proyek (umum untuk spph, sph, nego, kontrak)
     $(document).on('click', '.proyek-check', function(e) {
         e.preventDefault();
@@ -329,33 +273,38 @@ $(document).ready(function() {
         var html = '<div class="table-responsive"><table class="table table-bordered">';
         html += '<thead><tr>';
         if (tipe === 'spph') {
-            html += '<th>Nomor SPPH</th><th>Tanggal</th><th>Batas Akhir SPH</th><th>Uraian</th>';
+            html += '<th>Nomor SPPH</th><th>Subkontraktor</th><th>Tanggal</th><th>Batas Akhir SPH</th><th>Uraian</th>';
         } else if (tipe === 'sph') {
-            html += '<th>Nomor SPH</th><th>Tanggal</th><th>Uraian</th><th>Harga Total</th>';
+            html += '<th>Nomor SPH</th><th>Subkontraktor</th><th>Tanggal</th><th>Uraian</th><th>Harga Total</th>';
         } else if (tipe === 'nego') {
-            html += '<th>Nomor Nego</th><th>Tanggal</th><th>Uraian</th><th>Harga Total</th>';
+            html += '<th>Nomor Nego</th><th>Subkontraktor</th><th>Tanggal</th><th>Uraian</th><th>Harga Total</th>';
         } else if (tipe === 'kontrak') {
-            html += '<th>Nomor Kontrak</th><th>Tanggal</th><th>Uraian</th><th>Harga Total</th>';
+            html += '<th>Nomor Kontrak</th><th>Subkontraktor</th><th>Tanggal</th><th>Batas Akhir Kontrak</th><th>Uraian</th><th>Harga Total</th>';
         }
         html += '</tr></thead><tbody><tr>';
         if (tipe === 'spph') {
             html += '<td>' + (data.no_spph || '-') + '</td>';
+            html += '<td>' + (data.subkontraktor || '-') + '</td>';
             html += '<td>' + (data.tanggal || '-') + '</td>';
             html += '<td>' + (data.batas_akhir || '-') + '</td>';
             html += '<td>' + (data.uraian || '-') + '</td>';
         } else if (tipe === 'sph') {
             html += '<td>' + (data.no_sph || '-') + '</td>';
+            html += '<td>' + (data.subkontraktor || '-') + '</td>';
             html += '<td>' + (data.tanggal || '-') + '</td>';
             html += '<td>' + (data.uraian || '-') + '</td>';
             html += '<td>' + (data.harga_total ? formatRupiah(data.harga_total) : '-') + '</td>';
         } else if (tipe === 'nego') {
             html += '<td>' + (data.no_nego || '-') + '</td>';
+            html += '<td>' + (data.subkontraktor || '-') + '</td>';
             html += '<td>' + (data.tanggal || '-') + '</td>';
             html += '<td>' + (data.uraian || '-') + '</td>';
             html += '<td>' + (data.harga_total ? formatRupiah(data.harga_total) : '-') + '</td>';
         } else if (tipe === 'kontrak') {
             html += '<td>' + (data.no_kontrak || '-') + '</td>';
+            html += '<td>' + (data.subkontraktor || '-') + '</td>';
             html += '<td>' + (data.tanggal || '-') + '</td>';
+            html += '<td>' + (data.batas_akhir || '-') + '</td>';
             html += '<td>' + (data.uraian || '-') + '</td>';
             html += '<td>' + (data.harga_total ? formatRupiah(data.harga_total) : '-') + '</td>';
         }

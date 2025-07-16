@@ -21,6 +21,8 @@ class AdminController extends Controller
     {
         $request->validate([
             'nomor_spph' => 'required|string',
+            'subkontraktor' => 'required|string',
+            'nama_proyek' => 'required|string',
             'tanggal' => 'required|date',
             'batas_akhir_sph' => 'required|date',
             'uraian' => 'required|string',
@@ -65,12 +67,14 @@ class AdminController extends Controller
         // Simpan ke database
         Spph::create([
             'nomor_spph' => $request->nomor_spph,
+            'subkontraktor' => $request->subkontraktor ?? '',
+            'nama_proyek' => $request->nama_proyek ?? '',
             'tanggal' => $request->tanggal,
             'batas_akhir_sph' => $request->batas_akhir_sph,
             'uraian' => $request->uraian,
-            'dokumen_spph' => $dokumenSpph,
-            'dokumen_sow' => $dokumenSow,
-            'dokumen_lain' => $dokumenLainArr,
+            'dokumen_spph' => $dokumenSpph ? json_encode($dokumenSpph) : json_encode([]),
+            'dokumen_sow' => $dokumenSow ? json_encode($dokumenSow) : json_encode([]),
+            'dokumen_lain' => !empty($dokumenLainArr) ? json_encode($dokumenLainArr) : json_encode([]),
         ]);
 
         return back()->with('success', 'Data SPPH berhasil disimpan.');
@@ -82,6 +86,8 @@ class AdminController extends Controller
         \Log::info('SPH Request Data:', $request->all());
         $request->validate([
             'nomor_sph' => 'required|string',
+            'subkontraktor' => 'required|string',
+            'nama_proyek' => 'required|string',
             'tanggal' => 'required|date',
             'uraian' => 'required|string',
             'harga_total' => 'required|string',
@@ -101,10 +107,12 @@ class AdminController extends Controller
         // Simpan ke database
         Sph::create([
             'nomor_sph' => $request->nomor_sph,
+            'subkontraktor' => $request->subkontraktor ?? '',
+            'nama_proyek' => $request->nama_proyek ?? '',
             'tanggal' => $request->tanggal,
             'uraian' => $request->uraian,
             'harga_total' => $request->harga_total,
-            'dokumen_sph' => $dokumenSph,
+            'dokumen_sph' => $dokumenSph ? json_encode($dokumenSph) : json_encode([]),
         ]);
 
         return back()->with('success', 'Data SPH berhasil disimpan.');
@@ -115,6 +123,8 @@ class AdminController extends Controller
     {
         $request->validate([
             'nomor_nego' => 'required|string',
+            'subkontraktor' => 'required|string',
+            'nama_proyek' => 'required|string',
             'tanggal' => 'required|date',
             'uraian' => 'required|string',
             'harga_total' => 'required|string',
@@ -135,10 +145,12 @@ class AdminController extends Controller
         // Simpan ke database
         Nego::create([
             'nomor_nego' => $request->nomor_nego,
+            'subkontraktor' => $request->subkontraktor ?? '',
+            'nama_proyek' => $request->nama_proyek ?? '',
             'tanggal' => $request->tanggal,
             'uraian' => $request->uraian,
             'harga_total' => $request->harga_total,
-            'dokumen_nego' => $dokumenNego,
+            'dokumen_nego' => $dokumenNego ? json_encode($dokumenNego) : json_encode([]),
         ]);
 
         return back()->with('success', 'Data Negosiasi berhasil disimpan.');
@@ -149,6 +161,8 @@ class AdminController extends Controller
     {
         $request->validate([
             'nomor_kontrak' => 'required|string',
+            'subkontraktor' => 'required|string',
+            'nama_proyek' => 'required|string',
             'tanggal' => 'required|date',
             'batas_akhir_kontrak' => 'required|date',
             'uraian' => 'required|string',
@@ -170,11 +184,13 @@ class AdminController extends Controller
         // Simpan ke database
         Kontrak::create([
             'nomor_kontrak' => $request->nomor_kontrak,
+            'subkontraktor' => $request->subkontraktor ?? '',
+            'nama_proyek' => $request->nama_proyek ?? '',
             'tanggal' => $request->tanggal,
             'batas_akhir_kontrak' => $request->batas_akhir_kontrak,
             'uraian' => $request->uraian,
             'harga_total' => $request->harga_total,
-            'dokumen_kontrak' => $dokumenKontrak,
+            'dokumen_kontrak' => $dokumenKontrak ? json_encode($dokumenKontrak) : json_encode([]),
         ]);
 
         return back()->with('success', 'Data Kontrak berhasil disimpan.');

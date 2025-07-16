@@ -36,7 +36,9 @@
                             <thead>
                                 <tr>
                                     <th>Nomor SPH</th>
+                                    <th>Subkontraktor</th>
                                     <th>Tanggal</th>
+                                    <th>Nama Proyek</th>
                                     <th>Uraian</th>
                                     <th>Harga Total</th>
                                     <th>Berkas SPH</th>
@@ -46,8 +48,10 @@
                                 @foreach($sphData as $sph)
                                 <tr>
                                     <td>{{ $sph['no_sph'] }}</td>
+                                    <td>{{ $sph['subkontraktor'] }}</td>
                                     <td>{{ $sph['tanggal'] }}</td>
-                                    <td>{{ $sph['nama_pekerjaan'] }}</td>
+                                    <td>{{ $sph['nama_proyek'] }}</td>
+                                    <td>{{ $sph['uraian'] }}</td>
                                     <td>{{ \App\Http\Controllers\dashboardController::formatCurrency($sph['harga_total']) }}</td>
                                     <td>
                                         @if($sph['file_sph'] && isset($sph['file_sph']['path']))

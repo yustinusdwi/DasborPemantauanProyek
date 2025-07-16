@@ -31,8 +31,10 @@ class sphController extends Controller
             
             return [
                 'no_sph' => $sph->nomor_sph,
+                'subkontraktor' => $sph->subkontraktor,
                 'tanggal' => $sph->tanggal,
-                'nama_pekerjaan' => $sph->uraian,
+                'nama_proyek' => $sph->nama_proyek,
+                'uraian' => $sph->uraian,
                 'harga_total' => $sph->harga_total,
                 'file_sph' => $normalizeFile($sph->dokumen_sph),
             ];

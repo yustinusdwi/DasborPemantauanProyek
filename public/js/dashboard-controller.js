@@ -343,9 +343,11 @@ class DashboardController {
         // Destroy existing charts if they exist
         if (window.customerPieChart && typeof window.customerPieChart.destroy === 'function') {
             window.customerPieChart.destroy();
+            window.customerPieChart = null;
         }
         if (window.statusPieChart && typeof window.statusPieChart.destroy === 'function') {
             window.statusPieChart.destroy();
+            window.statusPieChart = null;
         }
 
         // Customer Pie Chart

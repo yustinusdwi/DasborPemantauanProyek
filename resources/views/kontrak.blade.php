@@ -27,8 +27,10 @@
                                 <tr>
                                     <th>No</th>
                                     <th>Nomor Kontrak</th>
+                                    <th>Subkontraktor</th>
                                     <th>Tanggal</th>
                                     <th>Batas Akhir Kontrak</th>
+                                    <th>Nama Proyek</th>
                                     <th>Uraian</th>
                                     <th>Harga Total</th>
                                     <th>Berkas Kontrak</th>
@@ -39,20 +41,20 @@
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
                                     <td>{{ $kontrak['no_kontrak'] }}</td>
+                                    <td>{{ $kontrak['subkontraktor'] }}</td>
                                     <td>{{ $kontrak['tanggal'] }}</td>
                                     <td>{{ $kontrak['batas_akhir'] }}</td>
+                                    <td>{{ $kontrak['nama_proyek'] }}</td>
                                     <td>{{ $kontrak['uraian'] }}</td>
                                     <td>{{ \App\Http\Controllers\dashboardController::formatCurrency($kontrak['nilai_harga_total']) }}</td>
                                     <td>
-                                        @if(!empty($kontrak['file_kontrak']) && is_array($kontrak['file_kontrak']))
-                                            @foreach($kontrak['file_kontrak'] as $file)
-                                                <div class="mb-2">
-                                                    <small class="text-muted d-block">{{ $file['name'] }}</small>
-                                                    <button type="button" class="btn btn-sm btn-primary preview-pdf-btn" data-toggle="modal" data-target="#pdfPreviewModal" data-pdf-url="{{ asset('storage/' . $file['path']) }}">
-                                                        <i class="fa-solid fa-eye"></i> Pratinjau
-                                                    </button>
-                                                </div>
-                                            @endforeach
+                                        @if($kontrak['file_kontrak'] && isset($kontrak['file_kontrak']['path']))
+                                            <div class="mb-2">
+                                                <small class="text-muted d-block">{{ $kontrak['file_kontrak']['name'] }}</small>
+                                                <button type="button" class="btn btn-sm btn-primary preview-pdf-btn" data-toggle="modal" data-target="#pdfPreviewModal" data-pdf-url="{{ asset('storage/' . $kontrak['file_kontrak']['path']) }}">
+                                                    <i class="fa-solid fa-eye"></i> Pratinjau
+                                                </button>
+                                            </div>
                                         @else
                                             -
                                         @endif

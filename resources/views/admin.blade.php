@@ -123,6 +123,24 @@
                         </div>
                     </div>
                     <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label">Subkontraktor</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="subkontraktor" class="form-control @error('subkontraktor') is-invalid @enderror" value="{{ old('subkontraktor') }}">
+                            @error('subkontraktor')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label">Nama Proyek</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="nama_proyek" class="form-control @error('nama_proyek') is-invalid @enderror" value="{{ old('nama_proyek') }}">
+                            @error('nama_proyek')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row mb-3">
                         <label class="col-sm-3 col-form-label">Tanggal</label>
                         <div class="col-sm-9">
                             <input type="date" name="tanggal" class="form-control @error('tanggal') is-invalid @enderror" value="{{ old('tanggal') }}">
@@ -223,6 +241,24 @@
                         </div>
                     </div>
                     <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label">Subkontraktor</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="subkontraktor" class="form-control @error('subkontraktor') is-invalid @enderror" value="{{ old('subkontraktor') }}">
+                            @error('subkontraktor')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label">Nama Proyek</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="nama_proyek" class="form-control @error('nama_proyek') is-invalid @enderror" value="{{ old('nama_proyek') }}">
+                            @error('nama_proyek')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row mb-3">
                         <label class="col-sm-3 col-form-label">Tanggal</label>
                         <div class="col-sm-9">
                             <input type="date" name="tanggal" class="form-control @error('tanggal') is-invalid @enderror" value="{{ old('tanggal') }}">
@@ -276,6 +312,24 @@
                         </div>
                     </div>
                     <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label">Subkontraktor</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="subkontraktor" class="form-control @error('subkontraktor') is-invalid @enderror" value="{{ old('subkontraktor') }}">
+                            @error('subkontraktor')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label">Nama Proyek</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="nama_proyek" class="form-control @error('nama_proyek') is-invalid @enderror" value="{{ old('nama_proyek') }}">
+                            @error('nama_proyek')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row mb-3">
                         <label class="col-sm-3 col-form-label">Tanggal</label>
                         <div class="col-sm-9">
                             <input type="date" name="tanggal" class="form-control">
@@ -317,9 +371,30 @@
                         </div>
                     </div>
                     <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label">Subkontraktor</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="subkontraktor" class="form-control @error('subkontraktor') is-invalid @enderror" value="{{ old('subkontraktor') }}">
+                            @error('subkontraktor')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label">Nama Proyek</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="nama_proyek" class="form-control @error('nama_proyek') is-invalid @enderror" value="{{ old('nama_proyek') }}">
+                            @error('nama_proyek')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row mb-3">
                         <label class="col-sm-3 col-form-label">Tanggal</label>
                         <div class="col-sm-9">
-                            <input type="date" name="tanggal" class="form-control">
+                            <input type="date" name="tanggal" class="form-control @error('tanggal') is-invalid @enderror" value="{{ old('tanggal') }}">
+                            @error('tanggal')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                     <div class="row mb-3">

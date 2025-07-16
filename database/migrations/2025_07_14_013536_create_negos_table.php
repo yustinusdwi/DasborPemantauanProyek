@@ -14,10 +14,12 @@ return new class extends Migration
         Schema::create('negos', function (Blueprint $table) {
             $table->id();
             $table->string('nomor_nego');
+            $table->string('subkontraktor')->nullable();
+            $table->string('nama_proyek')->nullable();
             $table->date('tanggal');
             $table->text('uraian');
             $table->string('harga_total');
-            $table->string('dokumen_nego')->nullable();
+            $table->json('dokumen_nego')->nullable();
             $table->timestamps();
         });
     }

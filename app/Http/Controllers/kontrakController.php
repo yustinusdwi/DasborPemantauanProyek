@@ -15,12 +15,10 @@ class kontrakController extends Controller
                 if (is_array($file) && isset($file['path']) && isset($file['name'])) {
                     return $file;
                 } elseif (is_string($file)) {
-                    // Coba decode JSON jika string
                     $decoded = json_decode($file, true);
                     if (is_array($decoded) && isset($decoded['path']) && isset($decoded['name'])) {
                         return $decoded;
                     }
-                    // Jika bukan JSON, anggap sebagai path file
                     return [
                         'path' => $file,
                         'name' => basename($file),
@@ -28,29 +26,25 @@ class kontrakController extends Controller
                 }
                 return null;
             };
-            $file_kontrak = [];
-            if (is_array($kontrak->dokumen_kontrak)) {
-                foreach ($kontrak->dokumen_kontrak as $file) {
-                    $f = $normalizeFile($file);
-                    if ($f) $file_kontrak[] = $f;
-                }
+            $file_kontrak = null;
+            if (is_array($kontrak->dokumen_kontrak) && isset($kontrak->dokumen_kontrak[0])) {
+                $file_kontrak = $normalizeFile($kontrak->dokumen_kontrak[0]);
             } elseif (is_string($kontrak->dokumen_kontrak)) {
-                // Coba decode JSON untuk dokumen_kontrak
                 $decoded = json_decode($kontrak->dokumen_kontrak, true);
-                if (is_array($decoded)) {
-                    foreach ($decoded as $file) {
-                        $f = $normalizeFile($file);
-                        if ($f) $file_kontrak[] = $f;
-                    }
+                if (is_array($decoded) && isset($decoded[0])) {
+                    $file_kontrak = $normalizeFile($decoded[0]);
+                } elseif (!empty($kontrak->dokumen_kontrak)) {
+                    $file_kontrak = $normalizeFile($kontrak->dokumen_kontrak);
                 } else {
-                    $f = $normalizeFile($kontrak->dokumen_kontrak);
-                    if ($f) $file_kontrak[] = $f;
+                    $file_kontrak = null;
                 }
             }
             return [
                 'no_kontrak' => $kontrak->nomor_kontrak,
+                'subkontraktor' => $kontrak->subkontraktor,
                 'tanggal' => $kontrak->tanggal,
                 'batas_akhir' => $kontrak->batas_akhir_kontrak,
+                'nama_proyek' => $kontrak->nama_proyek,
                 'uraian' => $kontrak->uraian,
                 'nilai_harga_total' => (int) $kontrak->harga_total,
                 'file_kontrak' => $file_kontrak,

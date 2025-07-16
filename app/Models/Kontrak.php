@@ -10,6 +10,8 @@ class Kontrak extends Model
     
     protected $fillable = [
         'nomor_kontrak',
+        'subkontraktor',
+        'nama_proyek',
         'tanggal',
         'batas_akhir_kontrak',
         'uraian',

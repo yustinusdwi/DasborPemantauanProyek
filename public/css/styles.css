@@ -2141,115 +2141,6 @@ pre code {
   max-width: 91.6666666667%;
 }
 
-.col-12 {
-  flex: 0 0 100%;
-  max-width: 100%;
-}
-
-.order-first {
-  order: -1;
-}
-
-.order-last {
-  order: 13;
-}
-
-.order-0 {
-  order: 0;
-}
-
-.order-1 {
-  order: 1;
-}
-
-.order-2 {
-  order: 2;
-}
-
-.order-3 {
-  order: 3;
-}
-
-.order-4 {
-  order: 4;
-}
-
-.order-5 {
-  order: 5;
-}
-
-.order-6 {
-  order: 6;
-}
-
-.order-7 {
-  order: 7;
-}
-
-.order-8 {
-  order: 8;
-}
-
-.order-9 {
-  order: 9;
-}
-
-.order-10 {
-  order: 10;
-}
-
-.order-11 {
-  order: 11;
-}
-
-.order-12 {
-  order: 12;
-}
-
-.offset-1 {
-  margin-left: 8.3333333333%;
-}
-
-.offset-2 {
-  margin-left: 16.6666666667%;
-}
-
-.offset-3 {
-  margin-left: 25%;
-}
-
-.offset-4 {
-  margin-left: 33.3333333333%;
-}
-
-.offset-5 {
-  margin-left: 41.6666666667%;
-}
-
-.offset-6 {
-  margin-left: 50%;
-}
-
-.offset-7 {
-  margin-left: 58.3333333333%;
-}
-
-.offset-8 {
-  margin-left: 66.6666666667%;
-}
-
-.offset-9 {
-  margin-left: 75%;
-}
-
-.offset-10 {
-  margin-left: 83.3333333333%;
-}
-
-.offset-11 {
-  margin-left: 91.6666666667%;
-}
-
 @media (min-width: 576px) {
   .col-sm {
     flex-basis: 0;
@@ -3262,11 +3153,6 @@ pre code {
 .table-hover .table-danger:hover {
   background-color: #f1b0b7;
 }
-.table-hover .table-danger:hover > td,
-.table-hover .table-danger:hover > th {
-  background-color: #f1b0b7;
-}
-
 .table-light,
 .table-light > th,
 .table-light > td {
@@ -4862,11 +4748,6 @@ input[type=button].btn-block {
   font-size: 1.25rem;
   line-height: 1.5;
   border-radius: 0.3rem;
-}
-
-.input-group-sm > .form-control:not(textarea),
-.input-group-sm > .custom-select {
-  height: calc(1.5em + 0.5rem + 2px);
 }
 
 .input-group-sm > .form-control,
@@ -11715,10 +11596,6 @@ body {
   background: linear-gradient(45deg, #ffc107, #fd7e14);
 }
 
-.progress-bar.bg-danger {
-  background: linear-gradient(45deg, #dc3545, #e83e8c);
-}
-
 .progress-bar.bg-info {
   background: linear-gradient(45deg, #17a2b8, #6f42c1);
 }
@@ -11729,6 +11606,11 @@ body {
 
 .progress-bar.bg-secondary {
   background: linear-gradient(45deg, #6c757d, #495057);
+}
+
+/* Make 0% progress bar solid red */
+.progress-bar.bg-danger {
+  background: #dc3545 !important;
 }
 
 /* Custom Table Styles */

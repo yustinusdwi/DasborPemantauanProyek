@@ -10,6 +10,8 @@ class Nego extends Model
     
     protected $fillable = [
         'nomor_nego',
+        'subkontraktor',
+        'nama_proyek',
         'tanggal',
         'uraian',
         'harga_total',

@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('sphs', function (Blueprint $table) {
             $table->id();
             $table->string('nomor_sph');
+            $table->string('subkontraktor')->nullable();
+            $table->string('nama_proyek')->nullable();
             $table->date('tanggal');
             $table->text('uraian');
             $table->string('harga_total');
