@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>DASBOR ADMINISTRATOR</title>
+    <title>ADMINISTRATOR</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('img/logo-imss-no-bg.png') }}" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -105,7 +106,16 @@
             <li class="nav-item">
                 <button class="nav-link" id="kontrak-tab" data-bs-toggle="tab" data-bs-target="#kontrak" type="button" role="tab">KONTRAK</button>
             </li>
+            <li class="nav-item">
+                <button class="nav-link" id="bapp-tab" data-bs-toggle="tab" data-bs-target="#bapp" type="button" role="tab">BAPP</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="tabel-tab" data-bs-toggle="tab" data-bs-target="#tabel" type="button" role="tab">KELOLA DATA</button>
+            </li>
         </ul>
+
+        <!-- Custom Notification -->
+        <div id="custom-alert" style="display:none; position: fixed; top: 30px; right: 30px; z-index: 9999; min-width: 300px;"></div>
 
         <div class="tab-content panel-card" id="binderTabsContent">
             {{-- === SPPH === --}}
@@ -270,19 +280,13 @@
                     <div class="row mb-3">
                         <label class="col-sm-3 col-form-label">Uraian Pekerjaan/Perihal</label>
                         <div class="col-sm-9">
-                            <input type="text" name="uraian" class="form-control @error('uraian') is-invalid @enderror" value="{{ old('uraian') }}">
-                            @error('uraian')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <input type="text" name="uraian" class="form-control">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <label class="col-sm-3 col-form-label">Harga Total (Rp)</label>
                         <div class="col-sm-9">
-                            <input type="text" name="harga_total" class="form-control @error('harga_total') is-invalid @enderror" value="{{ old('harga_total') }}">
-                            @error('harga_total')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <input type="text" name="harga_total" class="form-control">
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -303,14 +307,8 @@
             {{-- === NEGOSIASI === --}}
             <div class="tab-pane fade" id="nego" role="tabpanel">
                 <h5 class="mb-4 fw-bold">DATA NEGOSIASI</h5>
-                <form method="POST" action="{{ route('nego-store') }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('nego.storeMain') }}">
                     @csrf
-                    <div class="row mb-3">
-                        <label class="col-sm-3 col-form-label">Nomor Negosiasi</label>
-                        <div class="col-sm-9">
-                            <input type="text" name="nomor_nego" class="form-control">
-                        </div>
-                    </div>
                     <div class="row mb-3">
                         <label class="col-sm-3 col-form-label">Subkontraktor</label>
                         <div class="col-sm-9">
@@ -330,27 +328,12 @@
                         </div>
                     </div>
                     <div class="row mb-3">
-                        <label class="col-sm-3 col-form-label">Tanggal</label>
+                        <label class="col-sm-3 col-form-label">Uraian</label>
                         <div class="col-sm-9">
-                            <input type="date" name="tanggal" class="form-control">
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <label class="col-sm-3 col-form-label">Uraian Pekerjaan/Perihal</label>
-                        <div class="col-sm-9">
-                            <input type="text" name="uraian" class="form-control">
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <label class="col-sm-3 col-form-label">Harga Total (Rp)</label>
-                        <div class="col-sm-9">
-                            <input type="text" name="harga_total" class="form-control">
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <label class="col-sm-3 col-form-label">Berkas Negosiasi</label>
-                        <div class="col-sm-9">
-                            <input type="file" name="dokumen_nego" class="form-control">
+                            <input type="text" name="uraian" class="form-control @error('uraian') is-invalid @enderror" value="{{ old('uraian') }}">
+                            @error('uraian')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                     <div class="text-center">
@@ -426,11 +409,169 @@
                     </div>
                 </form>
             </div>
+
+            {{-- === BAPP === --}}
+            <div class="tab-pane fade" id="bapp" role="tabpanel">
+                <h5 class="mb-4 fw-bold">DATA BAPP</h5>
+                <form method="POST" action="{{ route('bapp.store') }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label">Nomor BAPP</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="nomor_bapp" class="form-control @error('nomor_bapp') is-invalid @enderror" value="{{ old('nomor_bapp') }}">
+                            @error('nomor_bapp')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label">Nomor PO</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="no_po" class="form-control @error('no_po') is-invalid @enderror" value="{{ old('no_po') }}">
+                            @error('no_po')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label">Tanggal PO</label>
+                        <div class="col-sm-9">
+                            <input type="date" name="tanggal_po" class="form-control @error('tanggal_po') is-invalid @enderror" value="{{ old('tanggal_po') }}">
+                            @error('tanggal_po')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label">Tanggal Terima</label>
+                        <div class="col-sm-9">
+                            <input type="date" name="tanggal_terima" class="form-control @error('tanggal_terima') is-invalid @enderror" value="{{ old('tanggal_terima') }}">
+                            @error('tanggal_terima')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label">Nama Proyek</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="nama_proyek" class="form-control @error('nama_proyek') is-invalid @enderror" value="{{ old('nama_proyek') }}">
+                            @error('nama_proyek')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label class="col-sm-3 col-form-label">Berkas BAPP (PDF)</label>
+                        <div class="col-sm-9">
+                            <input type="file" name="berkas_bapp" class="form-control @error('berkas_bapp') is-invalid @enderror" accept="application/pdf">
+                            @error('berkas_bapp')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn-kirim-besar"><i class="fa-solid fa-paper-plane"></i> Kirim</button>
+                    </div>
+                </form>
+            </div>
+
+            {{-- === DATA TABEL === --}}
+            <div class="tab-pane fade" id="tabel" role="tabpanel">
+                <h5 class="mb-4 fw-bold">DATA TABEL</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">SPPH</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>Tabel SPPH akan ditampilkan di sini.</p>
+                                <a href="{{ route('spph-index') }}" class="btn btn-primary">Lihat SPPH</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">SPH</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>Tabel SPH akan ditampilkan di sini.</p>
+                                <a href="{{ route('sph-index') }}" class="btn btn-primary">Lihat SPH</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">NEGOSIASI</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>Tabel NEGOSIASI akan ditampilkan di sini.</p>
+                                <a href="{{ route('nego-index') }}" class="btn btn-primary">Lihat NEGOSIASI</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">KONTRAK</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>Tabel KONTRAK akan ditampilkan di sini.</p>
+                                <a href="{{ route('kontrak-index') }}" class="btn btn-primary">Lihat KONTRAK</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Notifikasi custom
+    function showCustomAlert(message, type) {
+        const alertBox = document.getElementById('custom-alert');
+        alertBox.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert" style="box-shadow:0 2px 8px rgba(0,0,0,0.15); font-weight:bold;">
+            ${message}
+        </div>`;
+        alertBox.style.display = 'block';
+        setTimeout(() => {
+            alertBox.style.display = 'none';
+        }, 2500);
+    }
+
+    // Tampilkan notifikasi jika ada pesan sukses/gagal dari session
+    @if(session('success'))
+        showCustomAlert(@json(session('success')), 'success');
+    @endif
+    @if($errors->any())
+        showCustomAlert('Gagal menyimpan data. Mohon cek kembali isian Anda.', 'danger');
+    @endif
+
+    // Setelah submit BAPP, tetap di tab BAPP
+    document.addEventListener('DOMContentLoaded', function() {
+        // Jika hash #bapp di URL, aktifkan tab BAPP
+        if(window.location.hash === '#bapp') {
+            var bappTab = document.getElementById('bapp-tab');
+            if(bappTab) {
+                var tab = new bootstrap.Tab(bappTab);
+                tab.show();
+            }
+        }
+        // Jika submit form BAPP, tambahkan hash #bapp ke URL
+        var bappForm = document.querySelector('form[action*="bapp.store"]');
+        if(bappForm) {
+            bappForm.addEventListener('submit', function() {
+                window.location.hash = '#bapp';
+            });
+        }
+    });
+    </script>
 </body>
 
 </html>

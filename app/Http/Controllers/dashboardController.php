@@ -60,6 +60,15 @@ class dashboardController extends Controller
             $nego = $negoList->firstWhere('nama_proyek', $spph->nama_proyek);
             $kontrak = $kontrakList->firstWhere('nama_proyek', $spph->nama_proyek);
 
+            // Cek hasil negosiasi (detail tipe 'hasil')
+            $negoChecklist = '-';
+            if ($nego) {
+                $hasHasil = $nego->details()->where('tipe', 'hasil')->exists();
+                if ($hasHasil) {
+                    $negoChecklist = '<button class="btn btn-link p-0 m-0 text-success btn-detail-hasil-nego" data-nama-proyek="'.htmlspecialchars($spph->nama_proyek, ENT_QUOTES, 'UTF-8').'" style="font-size:1.2em;vertical-align:middle;" title="Lihat Hasil Negosiasi">&#10003;</button>';
+                }
+            }
+
             // Hitung progress sesuai permintaan baru
             if ($kontrak) {
                 $progress = 100;
@@ -94,15 +103,7 @@ class dashboardController extends Controller
                     'file_sph' => $sph->dokumen_sph,
                     'nama_proyek' => $sph->nama_proyek,
                 ]), ENT_QUOTES, 'UTF-8') . '"><span style="color:green;font-size:1.2em;">&#10003;</span></a>' : '-',
-                'nego' => $nego ? '<a href="#" class="proyek-check" data-tipe="nego" data-info="' . htmlspecialchars(json_encode([
-                    'no_nego' => $nego->nomor_nego,
-                    'subkontraktor' => $nego->subkontraktor,
-                    'tanggal' => $nego->tanggal,
-                    'uraian' => $nego->uraian,
-                    'harga_total' => $nego->harga_total,
-                    'file_nego' => $nego->dokumen_nego,
-                    'nama_proyek' => $nego->nama_proyek,
-                ]), ENT_QUOTES, 'UTF-8') . '"><span style="color:green;font-size:1.2em;">&#10003;</span></a>' : '-',
+                'nego' => $negoChecklist,
                 'kontrak' => $kontrak ? '<a href="#" class="proyek-check" data-tipe="kontrak" data-info="' . htmlspecialchars(json_encode([
                     'no_kontrak' => $kontrak->nomor_kontrak,
                     'subkontraktor' => $kontrak->subkontraktor,

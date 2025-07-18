@@ -18,6 +18,9 @@
                     <x-nav-link :href="route('admin')" :active="request()->routeIs('admin')">
                         {{ __('Administrator') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('bapp.user')" :active="request()->routeIs('bapp.user')">
+                        {{ __('BAPP') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -74,6 +77,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('admin')" :active="request()->routeIs('admin')">
                 {{ __('Administrator') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('bapp.user')" :active="request()->routeIs('bapp.user')">
+                {{ __('BAPP') }}
             </x-responsive-nav-link>
         </div>
 

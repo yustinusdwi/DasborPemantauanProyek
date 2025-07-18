@@ -181,6 +181,22 @@
     </div>
   </div>
                                 </div>
+<!-- Modal Hasil Negosiasi -->
+<div class="modal fade" id="hasilNegoModal" tabindex="-1" aria-labelledby="hasilNegoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="hasilNegoModalLabel">Detail Hasil Negosiasi</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="hasilNegoTableContainer">
+        <!-- Tabel hasil negosiasi akan diisi via JS -->
+      </div>
+    </div>
+  </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -312,6 +328,44 @@ $(document).ready(function() {
         $('#proyekInfoContent').html(html);
         $('#proyekInfoModal').modal('show');
         return false;
+    });
+
+    $(document).on('click', '.btn-detail-hasil-nego', function(e) {
+        e.preventDefault();
+        var namaProyek = $(this).data('nama-proyek');
+        $('#hasilNegoTableContainer').html('<div class="text-center">Memuat data...</div>');
+        function formatRupiah(angka) {
+            if (!angka || isNaN(angka)) return '-';
+            var number_string = angka.toString().replace(/[^\d]/g, ''),
+                sisa = number_string.length % 3,
+                rupiah = number_string.substr(0, sisa),
+                ribuan = number_string.substr(sisa).match(/\d{3}/g);
+            if (ribuan) {
+                rupiah += (sisa ? '.' : '') + ribuan.join('.');
+            }
+            return 'Rp. ' + rupiah;
+        }
+        $.get('/admin/nego/detail-by-project', { nama_proyek: namaProyek }, function(res) {
+            var data = res.data.filter(function(item) { return item.tipe === 'hasil'; });
+            if(data.length > 0) {
+                var html = '<div class="table-responsive"><table class="table table-bordered">';
+                html += '<thead><tr><th>No</th><th>Nomor Negosiasi</th><th>Subkontraktor</th><th>Tanggal</th><th>Harga Total</th></tr></thead><tbody>';
+                data.forEach(function(item, idx) {
+                    html += '<tr>';
+                    html += '<td>' + (idx + 1) + '</td>';
+                    html += '<td>' + (item.nomor_nego ?? '-') + '</td>';
+                    html += '<td>' + (item.subkontraktor ?? '-') + '</td>';
+                    html += '<td>' + (item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID') : '-') + '</td>';
+                    html += '<td>' + (item.harga_total ? formatRupiah(item.harga_total) : '-') + '</td>';
+                    html += '</tr>';
+                });
+                html += '</tbody></table></div>';
+                $('#hasilNegoTableContainer').html(html);
+            } else {
+                $('#hasilNegoTableContainer').html('<div class="alert alert-warning">Tidak ada data hasil negosiasi untuk proyek ini.</div>');
+            }
+            $('#hasilNegoModal').modal('show');
+        });
     });
             });
         </script>

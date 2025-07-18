@@ -5,8 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>Website Dasbor Pemantauan Proyek</title>
-        <link rel="icon" type="image/x-icon" href="{{ asset('img/logo_imss_hd-removebg.png') }}" />
+        <title>Dasbor Pemantauan Proyek</title>
+        <link rel="icon" type="image/x-icon" href="{{ asset('img/logo-imss-no-bg.png') }}" />
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -102,11 +102,15 @@
                                     </a>
                                     <a class="nav-link" href="{{ route('nego.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-handshake"></i></div>
-                                        Nego
+                                        Negosiasi
                                     </a>
                                     <a class="nav-link" href="{{ route('kontrak.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-file-contract"></i></div>
                                         Kontrak
+                                    </a>
+                                    <a class="nav-link" href="{{ route('bapp.index') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-file-invoice"></i></div>
+                                        BAPP
                                     </a>
                                 </nav>
                             </div>

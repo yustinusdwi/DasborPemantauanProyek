@@ -1,4 +1,5 @@
 @extends('layouts.app')
+<link rel="icon" type="image/x-icon" href="{{ asset('img/logo-imss-no-bg.png') }}" />
 
 @section('content')
 <style>

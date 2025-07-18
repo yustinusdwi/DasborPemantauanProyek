@@ -11,17 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('negos', function (Blueprint $table) {
+        Schema::create('nego_details', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('nego_id');
+            $table->enum('tipe', ['masuk', 'keluar', 'hasil']);
             $table->string('nomor_nego');
-            $table->string('pengirim')->nullable();
-            $table->string('subkontraktor')->nullable();
-            $table->string('nama_proyek')->nullable();
+            $table->string('subkontraktor');
             $table->date('tanggal');
-            $table->text('uraian');
             $table->string('harga_total');
             $table->json('dokumen_nego')->nullable();
             $table->timestamps();
+
+            $table->foreign('nego_id')->references('id')->on('negos')->onDelete('cascade');
         });
     }
 
@@ -30,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('negos');
+        Schema::dropIfExists('nego_details');
     }
-};
+}; 
