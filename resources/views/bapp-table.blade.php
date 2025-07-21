@@ -11,11 +11,12 @@
 <body class="bg-light">
     <div class="container py-4">
         <div class="card mb-4">
-            <div class="card-header bg-white border-bottom-0">
+            <div class="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center">
                 <h4 class="mb-0 fw-bold">Tabel Data BAPP</h4>
+                <a href="{{ route('admin') }}" class="btn btn-secondary"><i class="fa fa-arrow-left"></i> Kembali ke Admin</a>
             </div>
             <div class="card-body">
-                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addBappModal">Tambah BAPP</button>
+                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addBappModal" id="btnTambahBapp">Tambah BAPP</button>
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped" id="bappTable">
                         <thead class="table-light">
@@ -40,9 +41,14 @@
                                 <td>{{ $bapp->tanggal_terima }}</td>
                                 <td>{{ $bapp->nama_proyek }}</td>
                                 <td>
-                                    @if($bapp->berkas_bapp && isset($bapp->berkas_bapp['path']))
-                                        <button class="btn btn-sm btn-primary preview-bapp-btn" data-pdf-url="{{ asset('storage/'.$bapp->berkas_bapp['path']) }}" data-bs-toggle="modal" data-bs-target="#pdfPreviewModal">Pratinjau</button>
-                                        <span>{{ $bapp->berkas_bapp['name'] ?? '' }}</span>
+                                    @php
+                                        $berkas = is_array($bapp->berkas_bapp) ? $bapp->berkas_bapp : (json_decode($bapp->berkas_bapp, true) ?? null);
+                                    @endphp
+                                    @if($berkas && isset($berkas['path']) && Str::endsWith(strtolower($berkas['path']), '.pdf'))
+                                        <button type="button" class="btn btn-sm btn-primary preview-bapp-btn" data-pdf-url="{{ asset('storage/'.$berkas['path']) }}" data-bs-toggle="modal" data-bs-target="#pdfPreviewModal">Pratinjau</button>
+                                        <span>{{ $berkas['name'] ?? '' }}</span>
+                                    @elseif($berkas && isset($berkas['name']))
+                                        <span class="text-muted">{{ $berkas['name'] }}</span>
                                     @else
                                         <span class="badge bg-secondary">Tidak Ada</span>
                                     @endif
@@ -124,6 +130,12 @@
     <script>
     $(function() {
         $('#bappTable').DataTable();
+    });
+    // Reset form saat klik Tambah BAPP
+    $(document).on('click', '#btnTambahBapp', function() {
+        $('#formBapp')[0].reset();
+        $('#bapp_id').val('');
+        $('#formBappTitle').text('Tambah BAPP');
     });
     // Preview PDF
     $(document).on('click', '.preview-bapp-btn', function() {

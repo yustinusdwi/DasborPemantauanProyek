@@ -110,6 +110,9 @@
                 <button class="nav-link" id="bapp-tab" data-bs-toggle="tab" data-bs-target="#bapp" type="button" role="tab">BAPP</button>
             </li>
             <li class="nav-item">
+                <button class="nav-link" id="loi-tab" data-bs-toggle="tab" data-bs-target="#loi" type="button" role="tab">LoI</button>
+            </li>
+            <li class="nav-item">
                 <button class="nav-link" id="tabel-tab" data-bs-toggle="tab" data-bs-target="#tabel" type="button" role="tab">KELOLA DATA</button>
             </li>
         </ul>
@@ -526,12 +529,38 @@
                         </div>
                     </div>
                 </div>
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">BAPP</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>Tabel BAPP akan ditampilkan di sini.</p>
+                                <a href="{{ route('bapp-index') }}" class="btn btn-primary">Lihat BAPP</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">LoI</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>Tabel LoI akan ditampilkan di sini.</p>
+                                <a href="{{ route('loi-index') }}" class="btn btn-primary">Lihat LoI</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script>
     // Notifikasi custom
     function showCustomAlert(message, type) {

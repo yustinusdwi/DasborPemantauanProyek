@@ -112,6 +112,10 @@
                                         <div class="sb-nav-link-icon"><i class="fas fa-file-invoice"></i></div>
                                         BAPP
                                     </a>
+                                    <a class="nav-link" href="{{ route('loi.index') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-file-signature"></i></div>
+                                        LoI
+                                    </a>
                                 </nav>
                             </div>
                         </div>

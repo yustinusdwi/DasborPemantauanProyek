@@ -13,7 +13,8 @@ class AdminController extends Controller
     // Tampilkan halaman dashboard
     public function index()
     {
-        return view('admin');
+        $bapps = \App\Models\Bapp::orderBy('created_at', 'desc')->get();
+        return view('admin', compact('bapps'));
     }
 
     // Simpan data SPPH
@@ -461,5 +462,17 @@ class AdminController extends Controller
         $kontrak->delete();
         
         return response()->json(['success' => true]);
+    }
+
+    public function bappIndex()
+    {
+        $bapps = \App\Models\Bapp::orderBy('created_at', 'desc')->get();
+        return view('bapp-table', compact('bapps'));
+    }
+
+    public function loiIndex()
+    {
+        $lois = [];
+        return view('loi-table', compact('lois'));
     }
 }

@@ -12,6 +12,17 @@ class BappController extends Controller
     public function indexAdmin()
     {
         $bapps = Bapp::orderBy('created_at', 'desc')->get();
+        if (request()->ajax()) {
+            // Pastikan berkas_bapp sudah didecode ke array
+            $bapps = $bapps->map(function($bapp) {
+                $bappArr = $bapp->toArray();
+                if (is_string($bappArr['berkas_bapp'])) {
+                    $bappArr['berkas_bapp'] = json_decode($bappArr['berkas_bapp'], true);
+                }
+                return $bappArr;
+            });
+            return response()->json(['bapps' => $bapps]);
+        }
         return view('bapp-table', compact('bapps'));
     }
     // Tabel user

@@ -79,6 +79,11 @@ Route::post('/admin/bapp/store', [App\Http\Controllers\BappController::class, 's
 Route::post('/admin/bapp/update/{id}', [App\Http\Controllers\BappController::class, 'update'])->name('bapp.update');
 Route::delete('/admin/bapp/delete/{id}', [App\Http\Controllers\BappController::class, 'destroy'])->name('bapp.destroy');
 Route::get('/bapp', [App\Http\Controllers\BappController::class, 'index'])->name('bapp.index');
+Route::get('/admin/bapp-index', [App\Http\Controllers\AdminController::class, 'bappIndex'])->name('bapp-index');
+Route::get('/admin/loi-index', [App\Http\Controllers\AdminController::class, 'loiIndex'])->name('loi-index');
+Route::get('/loi', [App\Http\Controllers\LoiController::class, 'index'])->name('loi.index');
+
+Route::post('/notification/read/{id}', [App\Http\Controllers\dashboardController::class, 'markNotificationRead'])->name('notification.read');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

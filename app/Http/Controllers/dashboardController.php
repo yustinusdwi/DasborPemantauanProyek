@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use App\Models\Kontrak;
 use App\Models\Spph;
+use App\Models\Notification;
 
 class dashboardController extends Controller
 {
@@ -28,8 +29,22 @@ class dashboardController extends Controller
         $sphData = $this->getSphData();
         $negoData = $this->getNegoData();
         $kontrakData = $this->getKontrakData();
-        
-        return view('dashboard', compact('dashboardStats', 'projectData', 'chartData', 'spphData', 'sphData', 'negoData', 'kontrakData'));
+
+        // Generate reminder notifikasi batas akhir kontrak (7 hari ke depan)
+        $this->generateKontrakReminders();
+        $now = now();
+        $reminderDays = [7,3,2,1,0];
+        $targetDates = collect($reminderDays)->map(function($d) use ($now) {
+            return $now->copy()->addDays($d)->toDateString();
+        })->toArray();
+        $notifications = Notification::whereDate('batas_akhir', '>=', $now->toDateString())
+            ->whereDate('batas_akhir', '<=', $now->copy()->addDays(7)->toDateString())
+            ->whereIn(\DB::raw('DATE(batas_akhir)'), $targetDates)
+            ->orderBy('is_read')
+            ->orderBy('batas_akhir')
+            ->get();
+        $unreadCount = $notifications->where('is_read', false)->count();
+        return view('dashboard', compact('dashboardStats', 'projectData', 'chartData', 'spphData', 'sphData', 'negoData', 'kontrakData', 'notifications', 'unreadCount'));
     }
 
     /**
@@ -616,5 +631,42 @@ class dashboardController extends Controller
             'nego' => $negoOptions,
             'kontrak' => $kontrakOptions
         ]);
+    }
+
+    public function markNotificationRead($id)
+    {
+        $notif = Notification::findOrFail($id);
+        $notif->is_read = true;
+        $notif->save();
+        return response()->json(['success' => true]);
+    }
+
+    private function generateKontrakReminders()
+    {
+        $kontraks = Kontrak::all();
+        $now = now();
+        $reminderDays = [7, 3, 2, 1, 0];
+        foreach ($kontraks as $kontrak) {
+            $batasAkhir = $kontrak->batas_akhir_kontrak;
+            if (!$batasAkhir) continue;
+            $batasAkhirDate = \Carbon\Carbon::parse($batasAkhir);
+            $daysDiff = $now->diffInDays($batasAkhirDate, false);
+            if (in_array($daysDiff, $reminderDays)) {
+                $msg = $daysDiff === 0 ? 'Hari ini adalah batas akhir proyek "'.$kontrak->nama_proyek.'"!' : 'Batas akhir proyek "'.$kontrak->nama_proyek.'" tinggal '.$daysDiff.' hari lagi!';
+                $exists = Notification::where('kontrak_id', $kontrak->id)
+                    ->where('batas_akhir', $batasAkhirDate)
+                    ->where('message', $msg)
+                    ->exists();
+                if (!$exists) {
+                    Notification::create([
+                        'kontrak_id' => $kontrak->id,
+                        'nama_proyek' => $kontrak->nama_proyek,
+                        'batas_akhir' => $batasAkhirDate,
+                        'message' => $msg,
+                        'is_read' => false,
+                    ]);
+                }
+            }
+        }
     }
 }

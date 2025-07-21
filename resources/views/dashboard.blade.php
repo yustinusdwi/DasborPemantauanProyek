@@ -2,6 +2,32 @@
 
 @section('content')
                     <div class="container-fluid">
+                        <div class="d-flex justify-content-end align-items-center mb-2">
+                            <div class="dropdown">
+                                <button class="btn btn-light position-relative dropdown-toggle" type="button" id="notifDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-bell fa-lg"></i>
+                                    @if(isset($unreadCount) && $unreadCount > 0)
+                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ $unreadCount }}</span>
+                                    @endif
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="notifDropdown" style="min-width:320px;max-width:400px;">
+                                    <li class="dropdown-header fw-bold">Notifikasi Batas Akhir Proyek</li>
+                                    @forelse($notifications as $notif)
+                                        <li class="px-3 py-2 border-bottom small">
+                                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                            <span class="fw-bold">{{ $notif->nama_proyek }}</span><br>
+                                            <span class="text-muted">{{ $notif->message }}</span><br>
+                                            <span class="text-muted"><i class="far fa-clock"></i> {{ \Carbon\Carbon::parse($notif->batas_akhir)->translatedFormat('d M Y H:i') }}</span>
+                                            <button class="btn btn-sm btn-outline-success mt-2 btn-mark-read" data-id="{{ $notif->id }}" @if($notif->is_read) disabled @endif>
+                                                {{ $notif->is_read ? 'Sudah Dibaca' : 'Sudah Dibaca' }}
+                                            </button>
+                                        </li>
+                                    @empty
+                                        <li class="px-3 py-2 text-muted">Tidak ada notifikasi.</li>
+                                    @endforelse
+                                </ul>
+                            </div>
+                        </div>
                         <ol class="breadcrumb mb-4">
         <li class="breadcrumb-item active">Dasbor Pemantauan Proyek</li>
                         </ol>
@@ -365,6 +391,26 @@ $(document).ready(function() {
                 $('#hasilNegoTableContainer').html('<div class="alert alert-warning">Tidak ada data hasil negosiasi untuk proyek ini.</div>');
             }
             $('#hasilNegoModal').modal('show');
+        });
+    });
+
+    $(document).on('click', '.btn-mark-read', function() {
+        var btn = $(this);
+        var id = btn.data('id');
+        if(btn.prop('disabled')) return;
+        $.post({
+            url: '/notification/read/' + id,
+            data: {_token: '{{ csrf_token() }}'},
+            success: function(res) {
+                if(res.success) {
+                    btn.prop('disabled', true).text('Sudah Dibaca');
+                    // Update badge
+                    var badge = $('#notifDropdown .badge');
+                    var count = parseInt(badge.text()) || 0;
+                    if(count > 1) badge.text(count-1);
+                    else badge.remove();
+                }
+            }
         });
     });
             });
