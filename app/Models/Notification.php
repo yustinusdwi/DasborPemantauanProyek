@@ -13,6 +13,7 @@ class Notification extends Model
         'batas_akhir',
         'message',
         'is_read',
+        'type', // spph atau kontrak
     ];
     protected $casts = [
         'is_read' => 'boolean',

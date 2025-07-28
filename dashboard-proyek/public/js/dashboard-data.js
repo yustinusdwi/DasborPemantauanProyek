@@ -11,19 +11,8 @@
     });
 
     function updateDashboardStats() {
-        // Simulate data from API
-        var dashboardData = {
-            totalProducts: 1250,
-            totalSales: 3420,
-            totalOrders: 1890,
-            totalRevenue: 15420000
-        };
-
-        // Update dashboard cards with animation
-        animateCounter('#totalProducts', dashboardData.totalProducts);
-        animateCounter('#totalSales', dashboardData.totalSales);
-        animateCounter('#totalOrders', dashboardData.totalOrders);
-        animateCounter('#totalRevenue', dashboardData.totalRevenue, true);
+        // Data akan diambil dari API backend
+        // Tidak ada data dummy - semua data berasal dari database
     }
 
     function animateCounter(elementId, targetValue, isCurrency = false) {
@@ -74,13 +63,7 @@
         $(this).addClass('active');
     });
 
-    // Simulate real-time updates
-    setInterval(function() {
-        // Random small updates to make it feel dynamic
-        var randomChange = Math.floor(Math.random() * 10) - 5;
-        var currentSales = parseInt($('#totalSales').text().replace(/[^\d]/g, ''));
-        var newSales = Math.max(0, currentSales + randomChange);
-        $('#totalSales').text(formatNumber(newSales));
-    }, 5000);
+    // Real-time updates akan diambil dari API backend
+    // Tidak ada data dummy - semua data berasal dari database
 
 })(jQuery); 

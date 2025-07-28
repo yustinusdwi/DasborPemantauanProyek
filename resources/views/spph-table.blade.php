@@ -47,8 +47,8 @@
                         <tr>
                             <th>No</th>
                             <th>Nomor SPPH</th>
-                            <th>Subkontraktor</th>
-                            <th>Nama Proyek</th>
+                            <th>Pelanggan</th>
+                            <th>Kode - Nama Proyek</th>
                             <th>Tanggal</th>
                             <th>Batas Akhir SPH</th>
                             <th>Uraian</th>
@@ -62,7 +62,7 @@
                                 <td>{{ $index + 1 }}</td>
                                 <td>{{ $spph->nomor_spph }}</td>
                                 <td>{{ $spph->subkontraktor }}</td>
-                                <td>{{ $spph->nama_proyek }}</td>
+                                <td>{{ $spph->kode_proyek ?? '' }} - {{ $spph->nama_proyek ?? '' }}</td>
                                 <td>{{ \Carbon\Carbon::parse($spph->tanggal)->format('d/m/Y') }}</td>
                                 <td>{{ \Carbon\Carbon::parse($spph->batas_akhir_sph)->format('d/m/Y') }}</td>
                                 <td>{{ Str::limit($spph->uraian, 50) }}</td>
@@ -71,10 +71,34 @@
                                         $dokumenSpph = json_decode($spph->dokumen_spph, true);
                                         $dokumenSow = json_decode($spph->dokumen_sow, true);
                                         $dokumenLain = json_decode($spph->dokumen_lain, true);
+                                        $hasFile = false;
                                     @endphp
-                                    @if(!empty($dokumenSpph) || !empty($dokumenSow) || !empty($dokumenLain))
-                                        <span class="badge bg-success">Ada</span>
-                                    @else
+                                    @if($dokumenSpph && isset($dokumenSpph['path']))
+                                        <div class="mb-1">
+                                            <button type="button" class="btn btn-sm btn-primary preview-pdf-btn" data-bs-toggle="modal" data-bs-target="#pdfPreviewModal" data-pdf-url="{{ asset('storage/'.$dokumenSpph['path']) }}">SPPH</button>
+                                            <span>{{ $dokumenSpph['name'] ?? '' }}</span>
+                                        </div>
+                                        @php $hasFile = true; @endphp
+                                    @endif
+                                    @if($dokumenSow && isset($dokumenSow['path']))
+                                        <div class="mb-1">
+                                            <button type="button" class="btn btn-sm btn-primary preview-pdf-btn" data-bs-toggle="modal" data-bs-target="#pdfPreviewModal" data-pdf-url="{{ asset('storage/'.$dokumenSow['path']) }}">SOW</button>
+                                            <span>{{ $dokumenSow['name'] ?? '' }}</span>
+                                        </div>
+                                        @php $hasFile = true; @endphp
+                                    @endif
+                                    @if(is_array($dokumenLain))
+                                        @foreach($dokumenLain as $file)
+                                            @if(isset($file['path']))
+                                                <div class="mb-1">
+                                                    <button type="button" class="btn btn-sm btn-primary preview-pdf-btn" data-bs-toggle="modal" data-bs-target="#pdfPreviewModal" data-pdf-url="{{ asset('storage/'.$file['path']) }}">Lainnya</button>
+                                                    <span>{{ $file['name'] ?? '' }}</span>
+                                                </div>
+                                                @php $hasFile = true; @endphp
+                                            @endif
+                                        @endforeach
+                                    @endif
+                                    @if(!$hasFile)
                                         <span class="badge bg-secondary">Tidak Ada</span>
                                     @endif
                                 </td>
@@ -106,11 +130,12 @@
                                 <input type="text" name="nomor_spph" id="edit_nomor_spph" class="form-control" required>
                             </div>
                             <div class="mb-2">
-                                <label>Subkontraktor</label>
+                                <label>Pelanggan</label>
                                 <input type="text" name="subkontraktor" id="edit_subkontraktor" class="form-control" required>
                             </div>
                             <div class="mb-2">
-                                <label>Nama Proyek</label>
+                                <label>Kode - Nama Proyek</label>
+                                <input type="text" name="kode_proyek" id="edit_kode_proyek" class="form-control" required>
                                 <input type="text" name="nama_proyek" id="edit_nama_proyek" class="form-control" required>
                             </div>
                             <div class="mb-2">
@@ -146,7 +171,24 @@
                 </div>
             </div>
         </div>
+        <!-- Modal Preview PDF -->
+        <div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-labelledby="pdfPreviewModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="pdfPreviewModalLabel">Pratinjau Dokumen PDF</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <iframe id="pdfPreviewFrame" src="" width="100%" height="600px" style="border:none;"></iframe>
+              </div>
+                </div>
+            </div>
+        </div>
     </div>
+    <div class="d-flex align-items-center justify-content-end small">
+    <div class="text-muted">&copy; IT IMSS 2025</div>
+</div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
@@ -154,13 +196,125 @@
     <script>
     $(function() {
         $('#spphTable').DataTable();
+        // Preview PDF
+        $(document).on('click', '.preview-pdf-btn', function(e) {
+            e.preventDefault();
+            var pdfUrl = $(this).data('pdf-url');
+            
+            // Clear iframe terlebih dahulu
+            $('#pdfPreviewFrame').attr('src', '');
+            
+            // Set timeout untuk memastikan iframe sudah clear
+            setTimeout(function() {
+                $('#pdfPreviewFrame').attr('src', pdfUrl);
+                $('#pdfPreviewModal').modal('show');
+            }, 100);
+        });
+        
+        // Handle modal close dengan benar
+        $('#pdfPreviewModal').on('hidden.bs.modal', function () {
+            // Clear iframe dengan timeout untuk menghindari error
+            setTimeout(function() {
+                $('#pdfPreviewFrame').attr('src', '');
+            }, 200);
+        });
+        
+        // Handle modal show untuk memastikan iframe siap
+        $('#pdfPreviewModal').on('shown.bs.modal', function () {
+            // Pastikan iframe sudah ter-set dengan benar
+            var iframe = document.getElementById('pdfPreviewFrame');
+            if (iframe) {
+                iframe.style.height = '600px';
+            }
+        });
     });
+    $(document).ready(function() {
+  // Untuk semua input file di modal edit SPPH
+  $(document).on('change', '#editSpphModal input[type="file"]', function() {
+    var input = this;
+    var $parent = $(input).parent();
+    $parent.find('.file-action-btns').remove();
+    // Multiple file (dokumen_lain[])
+    if (input.multiple) {
+      // Buat preview di bawah input
+      var $preview = $parent.find('.file-action-preview');
+      if ($preview.length === 0) {
+        $preview = $('<div class="file-action-preview mt-2"></div>');
+        $parent.append($preview);
+      }
+      $preview.html('');
+      if (input.files && input.files.length > 0) {
+        var filesArr = Array.from(input.files);
+        filesArr.forEach(function(file, idx) {
+          var fileRow = $('<div class="d-flex align-items-center mb-1 file-action-btns"></div>');
+          fileRow.append('<span class="me-2">'+file.name+'</span>');
+          // Tombol pratinjau
+          var previewBtn = $('<button type="button" class="btn btn-sm btn-primary me-2"><i class="fa fa-eye"></i></button>');
+          previewBtn.on('click', function(e) {
+            e.preventDefault();
+            if (file.type === 'application/pdf') {
+              var fileURL = URL.createObjectURL(file);
+              $('#pdfPreviewFrame').attr('src', fileURL);
+              $('#pdfPreviewModal').modal('show');
+              $('#pdfPreviewModal').on('hidden.bs.modal', function() {
+                $('#pdfPreviewFrame').attr('src', '');
+                URL.revokeObjectURL(fileURL);
+              });
+            } else {
+              alert('Hanya file PDF yang dapat dipratinjau.');
+            }
+          });
+          // Tombol hapus
+          var removeBtn = $('<button type="button" class="btn btn-sm btn-danger"><i class="fa fa-times"></i></button>');
+          removeBtn.on('click', function(e) {
+            e.preventDefault();
+            var dt = new DataTransfer();
+            filesArr.forEach(function(f, i) { if (i !== idx) dt.items.add(f); });
+            input.files = dt.files;
+            $(input).trigger('change');
+          });
+          fileRow.append(previewBtn).append(removeBtn);
+          $preview.append(fileRow);
+        });
+      }
+    } else {
+      if (input.files && input.files.length > 0) {
+        var file = input.files[0];
+        var btns = $('<div class="file-action-btns mt-2"></div>');
+        var previewBtn = $('<button type="button" class="btn btn-sm btn-primary me-2"><i class="fa fa-eye"></i> Pratinjau</button>');
+        previewBtn.on('click', function(e) {
+          e.preventDefault();
+          if (file.type === 'application/pdf') {
+            var fileURL = URL.createObjectURL(file);
+            $('#pdfPreviewFrame').attr('src', fileURL);
+            $('#pdfPreviewModal').modal('show');
+            $('#pdfPreviewModal').on('hidden.bs.modal', function() {
+              $('#pdfPreviewFrame').attr('src', '');
+              URL.revokeObjectURL(fileURL);
+            });
+          } else {
+            alert('Hanya file PDF yang dapat dipratinjau.');
+          }
+        });
+        var removeBtn = $('<button type="button" class="btn btn-sm btn-danger"><i class="fa fa-times"></i></button>');
+        removeBtn.on('click', function(e) {
+          e.preventDefault();
+          $(input).val('');
+          $parent.find('.file-action-btns').remove();
+        });
+        btns.append(previewBtn).append(removeBtn);
+        $parent.append(btns);
+      }
+    }
+  });
+});
     function editSpph(id) {
         fetch(`/admin/spph/${id}/edit`)
             .then(res => res.json())
             .then(data => {
                 $('#edit_nomor_spph').val(data.nomor_spph);
                 $('#edit_subkontraktor').val(data.subkontraktor);
+                $('#edit_kode_proyek').val(data.kode_proyek);
                 $('#edit_nama_proyek').val(data.nama_proyek);
                 $('#edit_tanggal').val(data.tanggal);
                 $('#edit_batas_akhir_sph').val(data.batas_akhir_sph);

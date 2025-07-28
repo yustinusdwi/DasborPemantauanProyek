@@ -1,6 +1,8 @@
 @extends('layouts.app')
 <link rel="icon" type="image/x-icon" href="{{ asset('img/logo-imss-no-bg.png') }}" />
 
+@section('title', 'Dasbor Pemantauan Proyek | SPPH')
+
 @section('content')
 <style>
 @media (min-width: 992px) {
@@ -33,14 +35,14 @@
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-bordered" id="spphTable" width="100%" cellspacing="0">
+                        <table class="table table-bordered table-striped" id="spphTable" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
                                     <th>Nomor SPPH</th>
-                                    <th>Subkontraktor</th>
+                                    <th>Pelanggan</th>
                                     <th>Tanggal</th>
                                     <th>Batas Akhir SPPH</th>
-                                    <th>Nama Proyek</th>
+                                    <th>Kode - Nama Proyek</th>
                                     <th>Uraian</th>
                                     <th>Berkas SPPH</th>
                                     <th>Berkas SOW</th>
@@ -52,8 +54,8 @@
                                 <tr>
                                     <td>{{ $spph['no_spph'] }}</td>
                                     <td>{{ $spph['subkontraktor'] }}</td>
-                                    <td>{{ $spph['tanggal'] }}</td>
-                                    <td>{{ $spph['batas_akhir'] }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($spph['tanggal'])->format('d/m/Y') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($spph['batas_akhir'])->format('d/m/Y') }}</td>
                                     <td>{{ $spph['nama_proyek'] }}</td>
                                     <td>{{ $spph['uraian'] }}</td>
                                     <td>
@@ -119,8 +121,14 @@
     </div>
   </div>
 </div>
+<div class="d-flex align-items-center justify-content-end small">
+    <div class="text-muted">&copy; IT IMSS 2025</div>
+</div>
 
 @push('scripts')
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 <script>
 $(document).ready(function() {
     var table = $('#spphTable').DataTable({
@@ -157,14 +165,37 @@ $(document).ready(function() {
     $('#searchSpph').on('keyup', function() {
         table.search(this.value).draw();
     });
-
-    // Preview PDF
-    $(document).on('click', '.preview-pdf-btn', function() {
+    
+    // Preview PDF - Perbaikan untuk menghindari error message channel
+    $(document).on('click', '.preview-pdf-btn', function(e) {
+        e.preventDefault();
         var pdfUrl = $(this).data('pdf-url');
-        $('#pdfPreviewFrame').attr('src', pdfUrl);
-    });
-    $('#pdfPreviewModal').on('hidden.bs.modal', function () {
+        
+        // Clear iframe terlebih dahulu
         $('#pdfPreviewFrame').attr('src', '');
+        
+        // Set timeout untuk memastikan iframe sudah clear
+        setTimeout(function() {
+            $('#pdfPreviewFrame').attr('src', pdfUrl);
+            $('#pdfPreviewModal').modal('show');
+        }, 100);
+    });
+    
+    // Handle modal close dengan benar
+    $('#pdfPreviewModal').on('hidden.bs.modal', function () {
+        // Clear iframe dengan timeout untuk menghindari error
+        setTimeout(function() {
+            $('#pdfPreviewFrame').attr('src', '');
+        }, 200);
+    });
+    
+    // Handle modal show untuk memastikan iframe siap
+    $('#pdfPreviewModal').on('shown.bs.modal', function () {
+        // Pastikan iframe sudah ter-set dengan benar
+        var iframe = document.getElementById('pdfPreviewFrame');
+        if (iframe) {
+            iframe.style.height = '600px';
+        }
     });
 });
 </script>

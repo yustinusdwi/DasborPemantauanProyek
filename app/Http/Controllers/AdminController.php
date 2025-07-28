@@ -5,6 +5,7 @@ use App\Models\Spph;
 use App\Models\Sph;
 use App\Models\Nego;
 use App\Models\Kontrak;
+use App\Models\Loi;
 
 use Illuminate\Http\Request;
 
@@ -25,9 +26,9 @@ class AdminController extends Controller
             'subkontraktor' => 'required|string',
             'nama_proyek' => 'required|string',
             'tanggal' => 'required|date',
-            'batas_akhir_sph' => 'required|date',
+            'batas_akhir_spph' => 'required|date',
             'uraian' => 'required|string',
-            'dokumen_spph' => 'nullable|file|mimes:pdf|max:20480',
+            'dokumen_spph' => 'required|file|mimes:pdf|max:20480',
             'dokumen_sow' => 'nullable|file|mimes:pdf|max:20480',
             'dokumen_lain.*' => 'nullable|file|mimes:pdf|max:20480',
         ]);
@@ -71,13 +72,14 @@ class AdminController extends Controller
             'subkontraktor' => $request->subkontraktor ?? '',
             'nama_proyek' => $request->nama_proyek ?? '',
             'tanggal' => $request->tanggal,
-            'batas_akhir_sph' => $request->batas_akhir_sph,
+            'batas_akhir_sph' => $request->batas_akhir_spph,
             'uraian' => $request->uraian,
             'dokumen_spph' => $dokumenSpph ? json_encode($dokumenSpph) : json_encode([]),
             'dokumen_sow' => $dokumenSow ? json_encode($dokumenSow) : json_encode([]),
             'dokumen_lain' => !empty($dokumenLainArr) ? json_encode($dokumenLainArr) : json_encode([]),
         ]);
-
+        // Tambahkan: generate notifikasi langsung
+        app(\App\Http\Controllers\dashboardController::class)->generateNotifikasiSpph();
         return back()->with('success', 'Data SPPH berhasil disimpan.');
     }
 
@@ -114,9 +116,26 @@ class AdminController extends Controller
             'uraian' => $request->uraian,
             'harga_total' => $request->harga_total,
             'dokumen_sph' => $dokumenSph ? json_encode($dokumenSph) : json_encode([]),
+            'is_published' => false,
         ]);
 
         return back()->with('success', 'Data SPH berhasil disimpan.');
+    }
+
+    public function publishSph($id)
+    {
+        $sph = Sph::findOrFail($id);
+        $sph->is_published = true;
+        $sph->save();
+        return response()->json(['success' => true]);
+    }
+
+    public function unpublishSph($id)
+    {
+        $sph = Sph::findOrFail($id);
+        $sph->is_published = false;
+        $sph->save();
+        return response()->json(['success' => true]);
     }
 
     // Simpan data NEGOSIASI
@@ -168,6 +187,7 @@ class AdminController extends Controller
             'batas_akhir_kontrak' => 'required|date',
             'uraian' => 'required|string',
             'harga_total' => 'required|string',
+            'loi_id' => 'nullable|exists:lois,id',
             'dokumen_kontrak' => 'nullable|file|mimes:pdf|max:20480',
         ]);
 
@@ -191,9 +211,11 @@ class AdminController extends Controller
             'batas_akhir_kontrak' => $request->batas_akhir_kontrak,
             'uraian' => $request->uraian,
             'harga_total' => $request->harga_total,
+            'loi_id' => $request->loi_id,
             'dokumen_kontrak' => $dokumenKontrak ? json_encode($dokumenKontrak) : json_encode([]),
         ]);
-
+        // Tambahkan: generate notifikasi langsung
+        app(\App\Http\Controllers\dashboardController::class)->generateNotifikasiKontrak();
         return back()->with('success', 'Data Kontrak berhasil disimpan.');
     }
 
@@ -280,6 +302,18 @@ class AdminController extends Controller
         $spph->delete();
         
         return response()->json(['success' => true]);
+    }
+
+    // Endpoint AJAX: daftar nama proyek dan uraian dari SPPH
+    public function getSpphProjects()
+    {
+        $projects = \App\Models\Spph::select('nama_proyek', 'uraian', 'subkontraktor')
+            ->whereNotNull('nama_proyek')
+            ->where('nama_proyek', '!=', '')
+            ->groupBy('nama_proyek', 'uraian', 'subkontraktor')
+            ->orderBy('nama_proyek')
+            ->get();
+        return response()->json($projects);
     }
 
     // ===== SPH CRUD =====
@@ -405,13 +439,13 @@ class AdminController extends Controller
     // ===== KONTRAK CRUD =====
     public function kontrakIndex()
     {
-        $kontraks = Kontrak::orderBy('created_at', 'desc')->get();
+        $kontraks = Kontrak::with('loi')->orderBy('created_at', 'desc')->get();
         return view('kontrak-table', compact('kontraks'));
     }
 
     public function kontrakEdit($id)
     {
-        $kontrak = Kontrak::findOrFail($id);
+        $kontrak = Kontrak::with('loi')->findOrFail($id);
         return response()->json($kontrak);
     }
 
@@ -425,6 +459,7 @@ class AdminController extends Controller
             'batas_akhir_kontrak' => 'required|date',
             'uraian' => 'required|string',
             'harga_total' => 'required|string',
+            'loi_id' => 'nullable|exists:lois,id',
             'dokumen_kontrak' => 'nullable|file|mimes:pdf|max:20480',
         ]);
 
@@ -439,6 +474,7 @@ class AdminController extends Controller
             'batas_akhir_kontrak' => $request->batas_akhir_kontrak,
             'uraian' => $request->uraian,
             'harga_total' => $request->harga_total,
+            'loi_id' => $request->loi_id,
         ]);
 
         // Update file jika di-upload
@@ -472,7 +508,118 @@ class AdminController extends Controller
 
     public function loiIndex()
     {
-        $lois = [];
+        $lois = \App\Models\Loi::with('kontrak')->orderBy('created_at', 'desc')->get();
         return view('loi-table', compact('lois'));
+    }
+
+    // ===== LOI CRUD =====
+    public function storeLoi(Request $request)
+    {
+        $request->validate([
+            'nomor_loi' => 'required|string',
+            'tanggal' => 'required|date',
+            'batas_akhir_loi' => 'required|date',
+            'no_po' => 'nullable|string',
+            'kontrak_id' => 'required|exists:kontraks,id',
+            'nama_proyek' => 'required|string',
+            'harga_total' => 'required|string',
+            'berkas_loi' => 'nullable|file|mimes:pdf|max:20480',
+        ]);
+
+        // Simpan file jika di-upload
+        $berkasLoi = null;
+        if ($request->hasFile('berkas_loi')) {
+            $file = $request->file('berkas_loi');
+            $path = $file->store('dokumen/loi', 'public');
+            $berkasLoi = [
+                'path' => $path,
+                'name' => $file->getClientOriginalName(),
+            ];
+        }
+
+        // Simpan ke database
+        Loi::create([
+            'nomor_loi' => $request->nomor_loi,
+            'tanggal' => $request->tanggal,
+            'batas_akhir_loi' => $request->batas_akhir_loi,
+            'no_po' => $request->no_po,
+            'kontrak_id' => $request->kontrak_id,
+            'nama_proyek' => $request->nama_proyek,
+            'harga_total' => $request->harga_total,
+            'berkas_loi' => $berkasLoi ? json_encode($berkasLoi) : null,
+        ]);
+
+        return back()->with('success', 'Data LoI berhasil disimpan.');
+    }
+
+    public function getKontrakData()
+    {
+        $kontraks = Kontrak::select('id', 'nomor_kontrak', 'nama_proyek', 'harga_total')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return response()->json($kontraks);
+    }
+
+    public function getLoiData()
+    {
+        $lois = Loi::select('id', 'nomor_loi', 'nama_proyek')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return response()->json($lois);
+    }
+
+    public function loiEdit($id)
+    {
+        $loi = Loi::with('kontrak')->findOrFail($id);
+        return response()->json($loi);
+    }
+
+    public function loiUpdate(Request $request, $id)
+    {
+        $request->validate([
+            'nomor_loi' => 'required|string',
+            'tanggal' => 'required|date',
+            'batas_akhir_loi' => 'required|date',
+            'no_po' => 'nullable|string',
+            'kontrak_id' => 'required|exists:kontraks,id',
+            'nama_proyek' => 'required|string',
+            'harga_total' => 'required|string',
+            'berkas_loi' => 'nullable|file|mimes:pdf|max:20480',
+        ]);
+
+        $loi = Loi::findOrFail($id);
+        
+        // Update data dasar
+        $loi->update([
+            'nomor_loi' => $request->nomor_loi,
+            'tanggal' => $request->tanggal,
+            'batas_akhir_loi' => $request->batas_akhir_loi,
+            'no_po' => $request->no_po,
+            'kontrak_id' => $request->kontrak_id,
+            'nama_proyek' => $request->nama_proyek,
+            'harga_total' => $request->harga_total,
+        ]);
+
+        // Update file jika di-upload
+        if ($request->hasFile('berkas_loi')) {
+            $file = $request->file('berkas_loi');
+            $path = $file->store('dokumen/loi', 'public');
+            $berkasLoi = [
+                'path' => $path,
+                'name' => $file->getClientOriginalName(),
+            ];
+            $loi->berkas_loi = json_encode($berkasLoi);
+            $loi->save();
+        }
+
+        return back()->with('success', 'Data LoI berhasil diperbarui.');
+    }
+
+    public function loiDestroy($id)
+    {
+        $loi = Loi::findOrFail($id);
+        $loi->delete();
+        
+        return response()->json(['success' => true]);
     }
 }

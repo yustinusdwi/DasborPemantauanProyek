@@ -22,6 +22,7 @@ return new class extends Migration
             $table->json('dokumen_sph')->nullable();
             $table->json('dokumen_sow')->nullable();
             $table->json('dokumen_lain')->nullable();
+            $table->boolean('is_published')->default(false);
             $table->timestamps();
         });
     }

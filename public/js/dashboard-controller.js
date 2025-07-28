@@ -551,4 +551,64 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#proyekInfoModal').modal('show');
         return false;
     });
+
+    $(document).on('click', '.btn-detail-bapp-internal', function(e) {
+        e.preventDefault();
+        var namaProyek = $(this).data('nama-proyek');
+        // Ambil data BAPP INTERNAL via AJAX
+        $.get('/bapp-internal', { nama_proyek: namaProyek }, function(res) {
+            var bapp = null;
+            if (res.bapps && Array.isArray(res.bapps)) {
+                bapp = res.bapps.find(function(item) { return item.nama_proyek === namaProyek; });
+            }
+            var html = '';
+            if (bapp) {
+                html += '<div class="table-responsive"><table class="table table-bordered">';
+                html += '<thead><tr>';
+                html += '<th>Nomor BAPP</th><th>Nomor PO</th><th>Tanggal PO</th><th>Tanggal Terima</th><th>Nama Proyek</th><th>Harga Total</th>';
+                html += '</tr></thead><tbody><tr>';
+                html += '<td>' + (bapp.nomor_bapp || '-') + '</td>';
+                html += '<td>' + (bapp.no_po || '-') + '</td>';
+                html += '<td>' + (bapp.tanggal_po ? new Date(bapp.tanggal_po).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}) : '-') + '</td>';
+                html += '<td>' + (bapp.tanggal_terima ? new Date(bapp.tanggal_terima).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}) : '-') + '</td>';
+                html += '<td>' + (bapp.nama_proyek || '-') + '</td>';
+                html += '<td>' + (bapp.harga_total ? 'Rp ' + Number(bapp.harga_total).toLocaleString('id-ID') : '-') + '</td>';
+                html += '</tr></tbody></table></div>';
+            } else {
+                html = '<div class="alert alert-warning">Data BAPP INTERNAL tidak ditemukan.</div>';
+            }
+            $('#bappInternalInfoContent').html(html);
+            $('#bappInternalInfoModal').modal('show');
+        });
+    });
+
+    $(document).on('click', '.btn-detail-bapp-eksternal', function(e) {
+        e.preventDefault();
+        var namaProyek = $(this).data('nama-proyek');
+        // Ambil data BAPP EKSTERNAL via AJAX
+        $.get('/bapp-eksternal', { nama_proyek: namaProyek }, function(res) {
+            var bapp = null;
+            if (res.bapps && Array.isArray(res.bapps)) {
+                bapp = res.bapps.find(function(item) { return item.nama_proyek === namaProyek; });
+            }
+            var html = '';
+            if (bapp) {
+                html += '<div class="table-responsive"><table class="table table-bordered">';
+                html += '<thead><tr>';
+                html += '<th>Nomor BAPP</th><th>Nomor PO</th><th>Tanggal PO</th><th>Tanggal Terima</th><th>Nama Proyek</th><th>Harga Total</th>';
+                html += '</tr></thead><tbody><tr>';
+                html += '<td>' + (bapp.nomor_bapp || '-') + '</td>';
+                html += '<td>' + (bapp.no_po || '-') + '</td>';
+                html += '<td>' + (bapp.tanggal_po ? new Date(bapp.tanggal_po).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}) : '-') + '</td>';
+                html += '<td>' + (bapp.tanggal_terima ? new Date(bapp.tanggal_terima).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}) : '-') + '</td>';
+                html += '<td>' + (bapp.nama_proyek || '-') + '</td>';
+                html += '<td>' + (bapp.harga_total ? 'Rp ' + Number(bapp.harga_total).toLocaleString('id-ID') : '-') + '</td>';
+                html += '</tr></tbody></table></div>';
+            } else {
+                html = '<div class="alert alert-warning">Data BAPP EKSTERNAL tidak ditemukan.</div>';
+            }
+            $('#bappEksternalInfoContent').html(html);
+            $('#bappEksternalInfoModal').modal('show');
+        });
+    });
 }); 

@@ -13,7 +13,9 @@ class Bapp extends Model
         'tanggal_po',
         'tanggal_terima',
         'nama_proyek',
+        'harga_total',
         'berkas_bapp',
+        'tipe',
     ];
     protected $casts = [
         'berkas_bapp' => 'array',

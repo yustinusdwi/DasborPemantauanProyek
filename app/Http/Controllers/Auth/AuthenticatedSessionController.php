@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -24,11 +26,63 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        // Hardcoded users
+        $hardcodedUsers = [
+            [
+                'username' => 'admin',
+                'password' => 'admin123',
+                'role' => 'admin'
+            ],
+            [
+                'username' => 'pengguna',
+                'password' => 'pengguna123',
+                'role' => 'pengguna'
+            ],
+            // Contoh menambah user baru:
+            // [
+            //     'username' => 'manager',
+            //     'password' => 'manager123',
+            //     'role' => 'admin'
+            // ],
+            // [
+            //     'username' => 'staff',
+            //     'password' => 'staff123',
+            //     'role' => 'pengguna'
+            // ]
+        ];
 
-        $request->session()->regenerate();
+        $username = $request->input('username');
+        $password = $request->input('password');
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Cek hardcoded users
+        foreach ($hardcodedUsers as $user) {
+            if ($user['username'] === $username && $user['password'] === $password) {
+                // Cari atau buat user di database
+                $dbUser = User::firstOrCreate(
+                    ['username' => $user['username']],
+                    [
+                        'username' => $user['username'],
+                        'password' => Hash::make($user['password']),
+                        'role' => $user['role']
+                    ]
+                );
+
+                Auth::login($dbUser);
+                $request->session()->regenerate();
+                
+                // Redirect berdasarkan role
+                if ($dbUser->role === 'admin') {
+                    return redirect()->intended(route('admin-landing', absolute: false));
+                } else {
+                    return redirect()->intended(route('dashboard', absolute: false));
+                }
+            }
+        }
+
+        // Jika tidak ditemukan, throw error
+        throw \Illuminate\Validation\ValidationException::withMessages([
+            'username' => 'Username atau password salah.',
+        ]);
     }
 
     /**
@@ -42,6 +96,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('login');
     }
 }

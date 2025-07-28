@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <title>Login Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('img/logo-imss-no-bg.png') }}" />
 
     <!-- Bootstrap & Custom CSS -->
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet" />
@@ -21,20 +22,18 @@
                         <!-- Logo & Judul -->
                         <div class="text-center mb-3">
                             <img src="{{ asset('img/logo_imss_hd.jpg') }}" alt="Logo" style="height: 40px;">
-                            <h5 class="mt-2 mb-3 fw-bold text-dark" style="font-weight: bold; font-style: italic;">DASHBOARD MONITORING PROJECT</h5>
+                            <h5 class="mt-2 mb-3 fw-bold text-dark" style="font-weight: bold; font-style: italic;">DASBOR PEMANTAUAN PROYEK</h5>
                             <div class="border-bottom border-dark w-100 mx-auto mb-3"></div>
                         </div>
 
                         <!-- Form Login -->
-                        <!-- <form method="POST" action="{{ route('login') }}">
-                            @csrf -->
+                        <form method="POST" action="{{ route('login') }}">
+                            @csrf
 
-                        <form onsubmit="redirectToDashboard(event)">
-
-                            <!-- NIP -->
+                            <!-- Username -->
                             <div class="form-group mb-3">
-                                <label for="nip" class="form-label">Username</label>
-                                <input id="nip" type="text" class="form-control @error('nip') is-invalid @enderror" name="username" value="{{ old('username') }}" required autofocus>
+                                <label for="username" class="form-label">Username</label>
+                                <input id="username" type="text" class="form-control @error('username') is-invalid @enderror" name="username" value="{{ old('username') }}" required autofocus>
                                 @error('username')
                                 <span class="invalid-feedback" role="alert">
                                     <strong>{{ $message }}</strong>
@@ -75,13 +74,6 @@
             </div>
         </main>
     </div>
-
-    <script>
-        function redirectToDashboard(event) {
-            event.preventDefault(); // Hindari reload
-            window.location.href = "/dashboard"; // Ganti dengan URL tujuan demo kamu
-        }
-    </script>
 
     <!-- JavaScript -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" crossorigin="anonymous"></script>

@@ -41,14 +41,13 @@
                 @if(session('error'))
                     <div class="alert alert-danger">{{ session('error') }}</div>
                 @endif
-                <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addNegoModal">Tambah Negosiasi</button>
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped" id="negoTable">
                         <thead class="table-light">
                         <tr>
                             <th>No</th>
-                            <th>Subkontraktor</th>
-                            <th>Nama Proyek</th>
+                            <th>Pelanggan</th>
+                            <th>Kode - Nama Proyek</th>
                             <th>Uraian</th>
                             <th>Negosiasi Masuk & Keluar</th>
                             <th>Hasil Negosiasi</th>
@@ -60,7 +59,7 @@
                             <tr>
                                 <td>{{ $index + 1 }}</td>
                                 <td>{{ $nego->subkontraktor }}</td>
-                                <td>{{ $nego->nama_proyek }}</td>
+                                <td>{{ $nego->kode_proyek ?? '' }} - {{ $nego->nama_proyek ?? '' }}</td>
                                 <td>{{ Str::limit($nego->uraian, 50) }}</td>
                                 <td>
                                     <button class="btn btn-info btn-sm" onclick="showDetailNego({{ $nego->id }}, 'masuk')">Lihat Masuk</button>
@@ -95,11 +94,11 @@
                         </div>
                         <div class="modal-body">
                             <div class="mb-2">
-                                <label>Subkontraktor</label>
+                                <label>Pelanggan</label>
                                 <input type="text" name="subkontraktor" class="form-control" required>
                             </div>
                             <div class="mb-2">
-                                <label>Nama Proyek</label>
+                                <label>Nama - Kode Proyek</label>
                                 <input type="text" name="nama_proyek" class="form-control" required>
                             </div>
                             <div class="mb-2">
@@ -132,7 +131,7 @@
                                 <input type="text" name="nomor_nego" id="detail_nomor_nego" class="form-control" required>
                             </div>
                             <div class="mb-2">
-                                <label>Subkontraktor</label>
+                                <label>Pelanggan</label>
                                 <input type="text" name="subkontraktor" id="detail_subkontraktor" class="form-control" required>
                             </div>
                             <div class="mb-2">
@@ -201,11 +200,11 @@
                         <div class="modal-body">
                             <input type="hidden" name="id" id="edit_nego_id">
                             <div class="mb-2">
-                                <label>Subkontraktor</label>
+                                <label>Pelanggan</label>
                                 <input type="text" name="subkontraktor" id="edit_subkontraktor" class="form-control" required>
                             </div>
                             <div class="mb-2">
-                                <label>Nama Proyek</label>
+                                <label>Nama - Kode Proyek</label>
                                 <input type="text" name="nama_proyek" id="edit_nama_proyek" class="form-control" required>
                             </div>
                             <div class="mb-2">
@@ -244,15 +243,15 @@
             $('#formDetailNego')[0].reset();
             $('#detail_nego_id').val(negoId);
             $('#detail_tipe').val(tipe);
-            // Ambil subkontraktor dari baris utama tabel
-            var subkontraktor = '';
+            // Ambil pelanggan dari baris utama tabel
+            var pelanggan = '';
             $('#negoTable tbody tr').each(function() {
                 var idCell = $(this).find('button').first().attr('onclick');
                 if (idCell && idCell.includes('showDetailNego(' + negoId + ',')) {
-                    subkontraktor = $(this).find('td').eq(1).text();
+                    pelanggan = $(this).find('td').eq(1).text();
                 }
             });
-            $('#detail_subkontraktor').val(subkontraktor);
+            $('#detail_subkontraktor').val(pelanggan);
             $('#formDetailNegoTitle').text('Tambah Detail Negosiasi ('+tipe+')');
             $('#addDetailNegoModal').modal('show');
         }, 400);
@@ -267,7 +266,7 @@
                 var data = res.data.filter(function(item) { return item.tipe === tipe; });
                 if(data.length > 0) {
                     var html = '<div class="table-responsive"><table class="table table-bordered">';
-                    html += '<thead><tr><th>No</th><th>Nomor Negosiasi</th><th>Subkontraktor</th><th>Tanggal</th><th>Harga Total</th><th>Berkas Hasil Nego</th><th>Aksi</th></tr></thead><tbody>';
+                    html += '<thead><tr><th>No</th><th>Nomor Negosiasi</th><th>Pelanggan</th><th>Tanggal</th><th>Harga Total</th><th>Berkas Hasil Nego</th><th>Aksi</th></tr></thead><tbody>';
                     data.forEach(function(item, idx) {
                         html += '<tr>';
                         html += '<td>' + (idx + 1) + '</td>';
@@ -375,13 +374,37 @@
             .then(data => { if(data.success) location.reload(); });
         }
     }
-    $(document).on('click', '.preview-pdf-btn', function() {
-        var pdfUrl = $(this).data('pdf-url');
-        $('#pdfPreviewFrame').attr('src', pdfUrl);
-    });
-    $('#pdfPreviewModal').on('hidden.bs.modal', function () {
-        $('#pdfPreviewFrame').attr('src', '');
-    });
+        // Preview PDF
+        $(document).on('click', '.preview-pdf-btn', function(e) {
+            e.preventDefault();
+            var pdfUrl = $(this).data('pdf-url');
+            
+            // Clear iframe terlebih dahulu
+            $('#pdfPreviewFrame').attr('src', '');
+            
+            // Set timeout untuk memastikan iframe sudah clear
+            setTimeout(function() {
+                $('#pdfPreviewFrame').attr('src', pdfUrl);
+                $('#pdfPreviewModal').modal('show');
+            }, 100);
+        });
+        
+        // Handle modal close dengan benar
+        $('#pdfPreviewModal').on('hidden.bs.modal', function () {
+            // Clear iframe dengan timeout untuk menghindari error
+            setTimeout(function() {
+                $('#pdfPreviewFrame').attr('src', '');
+            }, 200);
+        });
+        
+        // Handle modal show untuk memastikan iframe siap
+        $('#pdfPreviewModal').on('shown.bs.modal', function () {
+            // Pastikan iframe sudah ter-set dengan benar
+            var iframe = document.getElementById('pdfPreviewFrame');
+            if (iframe) {
+                iframe.style.height = '600px';
+            }
+        });
     // Handler tombol Edit detail
     $(document).on('click', '.btnEditDetailNego', function() {
         var id = $(this).data('id');
@@ -404,11 +427,11 @@
     // Handler tombol Edit Nego Utama
     $(document).on('click', '.btnEditNegoUtama', function() {
         var id = $(this).data('id');
-        var subkontraktor = $(this).data('subkontraktor');
+        var pelanggan = $(this).data('subkontraktor');
         var nama_proyek = $(this).data('nama_proyek');
         var uraian = $(this).data('uraian');
         $('#edit_nego_id').val(id);
-        $('#edit_subkontraktor').val(subkontraktor);
+        $('#edit_subkontraktor').val(pelanggan);
         $('#edit_nama_proyek').val(nama_proyek);
         $('#edit_uraian').val(uraian);
         $('#editNegoUtamaModal').modal('show');
@@ -435,6 +458,43 @@
             error: function(xhr) { showGlobalToast('Gagal update data!', 'error'); }
         });
     });
+    $(document).ready(function() {
+      $(document).on('change', '#addDetailNegoModal input[type="file"]', function() {
+        var input = this;
+        var $parent = $(input).parent();
+        $parent.find('.file-action-btns').remove();
+        if (input.files && input.files.length > 0) {
+          var file = input.files[0];
+          var btns = $('<div class="file-action-btns mt-2"></div>');
+          var previewBtn = $('<button type="button" class="btn btn-sm btn-primary me-2"><i class="fa fa-eye"></i> Pratinjau</button>');
+          previewBtn.on('click', function(e) {
+            e.preventDefault();
+            if (file.type === 'application/pdf') {
+              var fileURL = URL.createObjectURL(file);
+              $('#pdfPreviewFrame').attr('src', fileURL);
+              $('#pdfPreviewModal').modal('show');
+              $('#pdfPreviewModal').on('hidden.bs.modal', function() {
+                $('#pdfPreviewFrame').attr('src', '');
+                URL.revokeObjectURL(fileURL);
+              });
+            } else {
+              alert('Hanya file PDF yang dapat dipratinjau.');
+            }
+          });
+          var removeBtn = $('<button type="button" class="btn btn-sm btn-danger"><i class="fa fa-times"></i></button>');
+          removeBtn.on('click', function(e) {
+            e.preventDefault();
+            $(input).val('');
+            $parent.find('.file-action-btns').remove();
+          });
+          btns.append(previewBtn).append(removeBtn);
+          $parent.append(btns);
+        }
+      });
+    });
     </script>
+    <div class="d-flex align-items-center justify-content-end small">
+        <div class="text-muted">&copy; IT IMSS 2025</div>
+    </div>
 </body>
 </html> 

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->dateTime('batas_akhir');
             $table->string('message');
             $table->boolean('is_read')->default(false);
+            $table->string('type')->nullable()->index();
             $table->timestamps();
         });
     }

@@ -1,6 +1,8 @@
 @extends('layouts.app')
 <link rel="icon" type="image/x-icon" href="{{ asset('img/logo-imss-no-bg.png') }}" />
 
+@section('title', 'Dasbor Pemantauan Proyek | SPH')
+
 @section('content')
 <style>
 @media (min-width: 992px) {
@@ -32,14 +34,14 @@
                             <input type="text" id="searchSph" class="form-control" placeholder="Cari SPH, Nama Pekerjaan, Berkas, dll...">
                         </div>
                     </div>
-                    <div class="table-responsive">
+                    <div class="table-responsive" style="max-height:65vh;overflow-y:auto;">
                         <table class="table table-bordered" id="sphTable" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
                                     <th>Nomor SPH</th>
-                                    <th>Subkontraktor</th>
+                                    <th>Pelanggan</th>
                                     <th>Tanggal</th>
-                                    <th>Nama Proyek</th>
+                                    <th>Kode - Nama Proyek</th>
                                     <th>Uraian</th>
                                     <th>Harga Total</th>
                                     <th>Berkas SPH</th>
@@ -50,7 +52,7 @@
                                 <tr>
                                     <td>{{ $sph['no_sph'] }}</td>
                                     <td>{{ $sph['subkontraktor'] }}</td>
-                                    <td>{{ $sph['tanggal'] }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($sph['tanggal'])->format('d/m/Y') }}</td>
                                     <td>{{ $sph['nama_proyek'] }}</td>
                                     <td>{{ $sph['uraian'] }}</td>
                                     <td>{{ \App\Http\Controllers\dashboardController::formatCurrency($sph['harga_total']) }}</td>
@@ -91,6 +93,9 @@
     </div>
   </div>
 </div>
+<div class="d-flex align-items-center justify-content-end small">
+    <div class="text-muted">&copy; IT IMSS 2025</div>
+</div>
 
 @push('scripts')
 <script>
@@ -130,13 +135,36 @@ $(document).ready(function() {
         table.search(this.value).draw();
     });
     
-    // Preview PDF
-    $(document).on('click', '.preview-pdf-btn', function() {
+    // Preview PDF - Perbaikan untuk menghindari error message channel
+    $(document).on('click', '.preview-pdf-btn', function(e) {
+        e.preventDefault();
         var pdfUrl = $(this).data('pdf-url');
-        $('#pdfPreviewFrame').attr('src', pdfUrl);
-    });
-    $('#pdfPreviewModal').on('hidden.bs.modal', function () {
+        
+        // Clear iframe terlebih dahulu
         $('#pdfPreviewFrame').attr('src', '');
+        
+        // Set timeout untuk memastikan iframe sudah clear
+        setTimeout(function() {
+            $('#pdfPreviewFrame').attr('src', pdfUrl);
+            $('#pdfPreviewModal').modal('show');
+        }, 100);
+    });
+    
+    // Handle modal close dengan benar
+    $('#pdfPreviewModal').on('hidden.bs.modal', function () {
+        // Clear iframe dengan timeout untuk menghindari error
+        setTimeout(function() {
+            $('#pdfPreviewFrame').attr('src', '');
+        }, 200);
+    });
+    
+    // Handle modal show untuk memastikan iframe siap
+    $('#pdfPreviewModal').on('shown.bs.modal', function () {
+        // Pastikan iframe sudah ter-set dengan benar
+        var iframe = document.getElementById('pdfPreviewFrame');
+        if (iframe) {
+            iframe.style.height = '600px';
+        }
     });
 });
 </script>

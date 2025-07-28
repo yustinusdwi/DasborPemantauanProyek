@@ -10,7 +10,8 @@ class sphController extends Controller
 {
     public function index(): View
     {
-        $sphData = Sph::orderBy('created_at', 'desc')->get()->map(function($sph) {
+        $sphData = Sph::where('is_published', true)
+            ->orderBy('created_at', 'desc')->get()->map(function($sph) {
             $normalizeFile = function($file) {
                 if (is_array($file) && isset($file['path']) && isset($file['name'])) {
                     return $file;

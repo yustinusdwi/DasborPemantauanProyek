@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Dasbor Pemantauan Proyek | Negosiasi')
+
 @section('content')
 <div class="container-fluid">
     <ol class="breadcrumb mb-4">
@@ -26,8 +28,8 @@
                             <thead>
                                 <tr>
                                     <th>No</th>
-                                    <th>Subkontraktor</th>
-                                    <th>Nama Proyek</th>
+                                    <th>Pelanggan</th>
+                                    <th>Kode - Nama Proyek</th>
                                     <th>Uraian</th>
                                     <th>Negosiasi Masuk & Keluar</th>
                                     <th>Hasil Negosiasi</th>
@@ -90,6 +92,9 @@
     </div>
   </div>
 </div>
+<div class="d-flex align-items-center justify-content-end small">
+    <div class="text-muted">&copy; IT IMSS 2025</div>
+</div>
 @endsection
 
 @push('scripts')
@@ -124,33 +129,50 @@ $(document).ready(function() {
         "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
         "order": [[0, "asc"]],
         "responsive": true,
-        dom: 'rtip'
+        dom: 'rtip',
+        "columnDefs": [
+            { "orderable": false, "targets": [4,5] }
+        ]
     });
     $('#searchNego').on('keyup', function() {
         table.search(this.value).draw();
     });
     // Preview PDF
-    $(document).on('click', '.preview-pdf-btn', function() {
+    $(document).on('click', '.preview-pdf-btn', function(e) {
+        e.preventDefault();
         var pdfUrl = $(this).data('pdf-url');
-        // Sembunyikan modal detail sebelum buka modal preview PDF
-        $('#detailNegoModal').modal('hide');
+        
+        // Clear iframe terlebih dahulu
+        $('#pdfPreviewFrame').attr('src', '');
+        
+        // Set timeout untuk memastikan iframe sudah clear
         setTimeout(function() {
             $('#pdfPreviewFrame').attr('src', pdfUrl);
             $('#pdfPreviewModal').modal('show');
-        }, 300);
+        }, 100);
     });
+    
+    // Handle modal close dengan benar
     $('#pdfPreviewModal').on('hidden.bs.modal', function () {
-        $('#pdfPreviewFrame').attr('src', '');
-        // Tampilkan kembali modal detail jika sebelumnya terbuka
+        // Clear iframe dengan timeout untuk menghindari error
         setTimeout(function() {
-            $('#detailNegoModal').modal('show');
-        }, 300);
+            $('#pdfPreviewFrame').attr('src', '');
+        }, 200);
+    });
+    
+    // Handle modal show untuk memastikan iframe siap
+    $('#pdfPreviewModal').on('shown.bs.modal', function () {
+        // Pastikan iframe sudah ter-set dengan benar
+        var iframe = document.getElementById('pdfPreviewFrame');
+        if (iframe) {
+            iframe.style.height = '600px';
+        }
     });
     $(document).on('click', '.lihat-detail-nego', function(e) {
         e.preventDefault();
         var negoId = $(this).data('nego-id');
         var tipe = $(this).data('tipe');
-        // Ambil nama proyek dari baris tabel
+        // Ambil nama - kode proyek dari baris tabel
         var namaProyek = $(this).closest('tr').find('td').eq(2).text();
         $('#modalNamaProyek').text(namaProyek);
         $('#detailNegoTableContainer').html('<div class="text-center">Memuat data...</div>');
@@ -169,7 +191,7 @@ $(document).ready(function() {
             var data = res.data.filter(function(item) { return item.tipe === tipe; });
             if(data.length > 0) {
                 var html = '<div class="table-responsive"><table class="table table-bordered">';
-                html += '<thead><tr><th>No</th><th>Nomor Negosiasi</th><th>Subkontraktor</th><th>Tanggal</th><th>Harga Total</th><th>Berkas Hasil Nego</th></tr></thead><tbody>';
+                html += '<thead><tr><th>No</th><th>Nomor Negosiasi</th><th>Pelanggan</th><th>Tanggal</th><th>Harga Total</th><th>Berkas Hasil Nego</th></tr></thead><tbody>';
                 data.forEach(function(item, idx) {
                     html += '<tr>';
                     html += '<td>' + (idx + 1) + '</td>';

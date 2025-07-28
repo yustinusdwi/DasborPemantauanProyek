@@ -6,7 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use App\Models\Kontrak;
 use App\Models\Spph;
+use App\Models\Sph;
+use App\Models\Nego;
 use App\Models\Notification;
+use App\Models\Bapp;
 
 class dashboardController extends Controller
 {
@@ -30,21 +33,51 @@ class dashboardController extends Controller
         $negoData = $this->getNegoData();
         $kontrakData = $this->getKontrakData();
 
-        // Generate reminder notifikasi batas akhir kontrak (7 hari ke depan)
-        $this->generateKontrakReminders();
-        $now = now();
-        $reminderDays = [7,3,2,1,0];
-        $targetDates = collect($reminderDays)->map(function($d) use ($now) {
-            return $now->copy()->addDays($d)->toDateString();
-        })->toArray();
-        $notifications = Notification::whereDate('batas_akhir', '>=', $now->toDateString())
-            ->whereDate('batas_akhir', '<=', $now->copy()->addDays(7)->toDateString())
-            ->whereIn(\DB::raw('DATE(batas_akhir)'), $targetDates)
-            ->orderBy('is_read')
+        // Generate notifikasi SPPH dan Kontrak
+        $this->generateNotifikasiSpph();
+        $this->generateNotifikasiKontrak();
+
+        // Ambil notifikasi terbaru (semua type)
+        $notifications = \App\Models\Notification::orderBy('type')
+            ->orderBy('nama_proyek')
             ->orderBy('batas_akhir')
             ->get();
-        $unreadCount = $notifications->where('is_read', false)->count();
-        return view('dashboard', compact('dashboardStats', 'projectData', 'chartData', 'spphData', 'sphData', 'negoData', 'kontrakData', 'notifications', 'unreadCount'));
+        // Filter: hanya notifikasi 21, 14, 7 hari (dengan pesan minggu) dan BELUM DIBACA
+        $filtered = $notifications->filter(function($notif) {
+            return preg_match('/(1|2|3) minggu/', $notif->message) && !$notif->is_read;
+        })->sortBy(function($notif) {
+            // Urutkan: 3 minggu (21 hari) dulu, lalu 2, lalu 1
+            if(str_contains($notif->message, '3 minggu')) return 1;
+            if(str_contains($notif->message, '2 minggu')) return 2;
+            if(str_contains($notif->message, '1 minggu')) return 3;
+            return 4;
+        });
+        $unreadCount = $filtered->count();
+        return view('dashboard', compact('dashboardStats', 'projectData', 'chartData', 'spphData', 'sphData', 'negoData', 'kontrakData', 'notifications', 'unreadCount', 'filtered'));
+    }
+
+    /**
+     * Menampilkan halaman daftar notifikasi per proyek
+     */
+    public function listNotifications()
+    {
+        // Ambil semua notifikasi, urutkan per proyek dan waktu
+        $publishedSphProjects = \App\Models\Sph::where('is_published', true)->pluck('nama_proyek')->toArray();
+        $bappInternalProjects = \App\Models\Bapp::where('tipe', 'internal')->pluck('nama_proyek')->toArray();
+        $notifications = \App\Models\Notification::orderBy('nama_proyek')
+            ->orderBy('batas_akhir', 'desc')
+            ->get()
+            ->filter(function($notif) use ($publishedSphProjects, $bappInternalProjects) {
+                if ($notif->type === 'spph' && in_array($notif->nama_proyek, $publishedSphProjects)) {
+                    return false;
+                }
+                if ($notif->type === 'kontrak' && in_array($notif->nama_proyek, $bappInternalProjects)) {
+                    return false;
+                }
+                return true;
+            })
+            ->groupBy('nama_proyek');
+        return view('notifications.list', compact('notifications'));
     }
 
     /**
@@ -53,10 +86,14 @@ class dashboardController extends Controller
     private function getDashboardStats(): array
     {
         $jumlahKontrak = Kontrak::count();
+        $totalSales = Kontrak::sum('harga_total');
+        $totalPenjualan = \App\Models\Bapp::where('tipe', 'eksternal')->sum('harga_total');
+        $bappEksternalData = \App\Models\Bapp::where('tipe', 'eksternal')->orderBy('created_at', 'desc')->get(['nomor_bapp','no_po','tanggal_po','tanggal_terima','nama_proyek','harga_total']);
         return [
-            'target_sales' => 'Rp 10.5 Juta',
-            'target_pemasaran' => 'Rp 8.2 Juta',
-            'total_proyek' => $jumlahKontrak
+            'target_sales' => 'Rp ' . number_format($totalSales, 0, ',', '.'),
+            'penjualan' => 'Rp ' . number_format($totalPenjualan, 0, ',', '.'),
+            'total_proyek' => $jumlahKontrak,
+            'bapp_eksternal_data' => $bappEksternalData
         ];
     }
 
@@ -66,16 +103,27 @@ class dashboardController extends Controller
     private function getProjectData(): array
     {
         $spphList = Spph::orderBy('created_at', 'desc')->get();
-        $sphList = \App\Models\Sph::orderBy('created_at', 'desc')->get();
+        $sphList = \App\Models\Sph::where('is_published', true)->orderBy('created_at', 'desc')->get();
         $negoList = \App\Models\Nego::orderBy('created_at', 'desc')->get();
         $kontrakList = \App\Models\Kontrak::orderBy('created_at', 'desc')->get();
+        $bappInternalList = Bapp::where('tipe', 'internal')->orderBy('created_at', 'desc')->get();
+        $bappEksternalList = Bapp::where('tipe', 'eksternal')->orderBy('created_at', 'desc')->get();
         $projectData = [];
+        
         foreach ($spphList as $spph) {
             $sph = $sphList->firstWhere('nama_proyek', $spph->nama_proyek);
             $nego = $negoList->firstWhere('nama_proyek', $spph->nama_proyek);
             $kontrak = $kontrakList->firstWhere('nama_proyek', $spph->nama_proyek);
+            $bappInternal = $bappInternalList->firstWhere('nama_proyek', $spph->nama_proyek);
+            $bappEksternal = $bappEksternalList->firstWhere('nama_proyek', $spph->nama_proyek);
 
-            // Cek hasil negosiasi (detail tipe 'hasil')
+            // Checklist BAPP EKSTERNAL
+            $bappEksternalBtn = '-';
+            if ($bappEksternal) {
+                $bappEksternalBtn = '<button class="btn btn-link p-0 m-0 text-success btn-detail-bapp-eksternal" data-nama-proyek="'.htmlspecialchars($spph->nama_proyek, ENT_QUOTES, 'UTF-8').'" style="font-size:1.2em;vertical-align:middle;" title="Lihat BAPP Eksternal">&#10003;</button>';
+            }
+
+            // Checklist hasil negosiasi
             $negoChecklist = '-';
             if ($nego) {
                 $hasHasil = $nego->details()->where('tipe', 'hasil')->exists();
@@ -84,19 +132,22 @@ class dashboardController extends Controller
                 }
             }
 
-            // Hitung progress sesuai permintaan baru
-            if ($kontrak) {
-                $progress = 100;
-                $progressClass = 'bg-success';
-            } elseif ($nego) {
-                $progress = 66;
-                $progressClass = 'bg-warning';
-            } elseif ($sph) {
-                $progress = 33;
-                $progressClass = 'bg-primary';
-            } else {
-                $progress = 0;
-                $progressClass = 'bg-danger'; // 0% progress is now red
+            // Progress akumulasi baru
+            $progress = 0;
+            $progressClass = 'bg-danger';
+            if ($sph) $progress += 25;
+            if ($nego) $progress += 25;
+            if ($kontrak) $progress += 25;
+            if ($bappInternal) $progress += 10;
+            if ($bappEksternal) $progress += 15;
+            if ($progress == 100) $progressClass = 'bg-success';
+            elseif ($progress >= 75) $progressClass = 'bg-orange';
+            elseif ($progress >= 50) $progressClass = 'bg-warning';
+            elseif ($progress >= 25) $progressClass = 'bg-primary';
+
+            $bappInternalBtn = '-';
+            if ($bappInternal) {
+                $bappInternalBtn = '<button class="btn btn-link p-0 m-0 text-success btn-detail-bapp-internal" data-nama-proyek="'.htmlspecialchars($spph->nama_proyek, ENT_QUOTES, 'UTF-8').'" style="font-size:1.2em;vertical-align:middle;" title="Lihat BAPP Internal">&#10003;</button>';
             }
 
             $projectData[] = [
@@ -129,26 +180,27 @@ class dashboardController extends Controller
                     'file_kontrak' => $kontrak->dokumen_kontrak,
                     'nama_proyek' => $kontrak->nama_proyek,
                 ]), ENT_QUOTES, 'UTF-8') . '"><span style="color:green;font-size:1.2em;">&#10003;</span></a>' : '-',
+                'bapp_internal' => $bappInternalBtn,
+                'bapp_eksternal' => $bappEksternalBtn,
                 'progress' => $progress,
                 'progress_class' => $progressClass,
             ];
         }
+        
         if (empty($projectData)) {
             return [[
                 'nama' => 'Data proyek tidak tersedia',
-                'spph' => '',
-                'sph' => '',
-                'nego' => '',
-                'kontrak' => '',
-                'customer' => '',
-                'nomor_kontrak' => '',
-                'tanggal_kontrak' => '',
-                'status' => '',
-                'estimasi_nilai' => 0,
+                'spph' => '-',
+                'sph' => '-',
+                'nego' => '-',
+                'kontrak' => '-',
+                'bapp_internal' => '-',
+                'bapp_eksternal' => '-',
                 'progress' => 0,
-                'progress_class' => 'bg-danger', // Tambahkan default agar tidak error
+                'progress_class' => 'bg-danger',
             ]];
         }
+        
         return $projectData;
     }
 
@@ -157,62 +209,8 @@ class dashboardController extends Controller
      */
     private function getSpphData(): array
     {
-        return [
-            [
-                'no_spph' => 'SPPH-001',
-                'tanggal' => '2024-01-15',
-                'batas_akhir' => '2024-01-30',
-                'nama_proyek' => 'Pembangunan Gedung A',
-                'file_spph' => 'SPPH-001.pdf',
-                'file_lampiran' => 'Lampiran-SPPH-001.zip',
-                'progress' => 75
-            ],
-            [
-                'no_spph' => 'SPPH-002',
-                'tanggal' => '2024-02-20',
-                'batas_akhir' => '2024-03-05',
-                'nama_proyek' => 'Renovasi Kantor B',
-                'file_spph' => 'SPPH-002.pdf',
-                'file_lampiran' => 'Lampiran-SPPH-002.zip',
-                'progress' => 25
-            ],
-            [
-                'no_spph' => 'SPPH-003',
-                'tanggal' => '2024-03-10',
-                'batas_akhir' => '2024-03-25',
-                'nama_proyek' => 'Instalasi Sistem IT',
-                'file_spph' => 'SPPH-003.pdf',
-                'file_lampiran' => 'Lampiran-SPPH-003.zip',
-                'progress' => 90
-            ],
-            [
-                'no_spph' => 'SPPH-004',
-                'tanggal' => '2024-01-05',
-                'batas_akhir' => '2024-01-20',
-                'nama_proyek' => 'Pembangunan Jembatan',
-                'file_spph' => 'SPPH-004.pdf',
-                'file_lampiran' => 'Lampiran-SPPH-004.zip',
-                'progress' => 100
-            ],
-            [
-                'no_spph' => 'SPPH-005',
-                'tanggal' => '2024-04-01',
-                'batas_akhir' => '2024-04-15',
-                'nama_proyek' => 'Pembangunan Mall',
-                'file_spph' => 'SPPH-005.pdf',
-                'file_lampiran' => 'Lampiran-SPPH-005.zip',
-                'progress' => 10
-            ],
-            [
-                'no_spph' => 'SPPH-006',
-                'tanggal' => '2024-03-25',
-                'batas_akhir' => '2024-04-10',
-                'nama_proyek' => 'Renovasi Hotel',
-                'file_spph' => 'SPPH-006.pdf',
-                'file_lampiran' => 'Lampiran-SPPH-006.zip',
-                'progress' => 45
-            ]
-        ];
+        // Data akan diambil dari database
+        return [];
     }
 
     /**
@@ -220,62 +218,8 @@ class dashboardController extends Controller
      */
     private function getSphData(): array
     {
-        return [
-            [
-                'no_sph' => 'SPH-001',
-                'tanggal' => '2024-01-20',
-                'batas_akhir' => '2024-02-05',
-                'nama_pekerjaan' => 'Pembangunan Gedung A',
-                'file_sph' => 'SPH-001.pdf',
-                'file_lampiran' => 'Lampiran-SPH-001.zip',
-                'progress' => 80
-            ],
-            [
-                'no_sph' => 'SPH-002',
-                'tanggal' => '2024-02-25',
-                'batas_akhir' => '2024-03-10',
-                'nama_pekerjaan' => 'Renovasi Kantor B',
-                'file_sph' => 'SPH-002.pdf',
-                'file_lampiran' => 'Lampiran-SPH-002.zip',
-                'progress' => 30
-            ],
-            [
-                'no_sph' => 'SPH-003',
-                'tanggal' => '2024-03-15',
-                'batas_akhir' => '2024-03-30',
-                'nama_pekerjaan' => 'Instalasi Sistem IT',
-                'file_sph' => 'SPH-003.pdf',
-                'file_lampiran' => 'Lampiran-SPH-003.zip',
-                'progress' => 95
-            ],
-            [
-                'no_sph' => 'SPH-004',
-                'tanggal' => '2024-01-10',
-                'batas_akhir' => '2024-01-25',
-                'nama_pekerjaan' => 'Pembangunan Jembatan',
-                'file_sph' => 'SPH-004.pdf',
-                'file_lampiran' => 'Lampiran-SPH-004.zip',
-                'progress' => 100
-            ],
-            [
-                'no_sph' => 'SPH-005',
-                'tanggal' => '2024-04-05',
-                'batas_akhir' => '2024-04-20',
-                'nama_pekerjaan' => 'Pembangunan Mall',
-                'file_sph' => 'SPH-005.pdf',
-                'file_lampiran' => 'Lampiran-SPH-005.zip',
-                'progress' => 15
-            ],
-            [
-                'no_sph' => 'SPH-006',
-                'tanggal' => '2024-03-30',
-                'batas_akhir' => '2024-04-15',
-                'nama_pekerjaan' => 'Renovasi Hotel',
-                'file_sph' => 'SPH-006.pdf',
-                'file_lampiran' => 'Lampiran-SPH-006.zip',
-                'progress' => 50
-            ]
-        ];
+        // Data akan diambil dari database
+        return [];
     }
 
     /**
@@ -283,62 +227,8 @@ class dashboardController extends Controller
      */
     private function getNegoData(): array
     {
-        return [
-            [
-                'no_nego' => 'NEGO-001',
-                'tanggal' => '2024-01-25',
-                'batas_akhir' => '2024-02-10',
-                'nama_pekerjaan' => 'Pembangunan Gedung A',
-                'file_nego' => 'NEGO-001.pdf',
-                'file_lampiran' => 'Lampiran-NEGO-001.zip',
-                'progress' => 85
-            ],
-            [
-                'no_nego' => 'NEGO-002',
-                'tanggal' => '2024-03-01',
-                'batas_akhir' => '2024-03-15',
-                'nama_pekerjaan' => 'Renovasi Kantor B',
-                'file_nego' => 'NEGO-002.pdf',
-                'file_lampiran' => 'Lampiran-NEGO-002.zip',
-                'progress' => 35
-            ],
-            [
-                'no_nego' => 'NEGO-003',
-                'tanggal' => '2024-03-20',
-                'batas_akhir' => '2024-04-05',
-                'nama_pekerjaan' => 'Instalasi Sistem IT',
-                'file_nego' => 'NEGO-003.pdf',
-                'file_lampiran' => 'Lampiran-NEGO-003.zip',
-                'progress' => 98
-            ],
-            [
-                'no_nego' => 'NEGO-004',
-                'tanggal' => '2024-01-15',
-                'batas_akhir' => '2024-01-30',
-                'nama_pekerjaan' => 'Pembangunan Jembatan',
-                'file_nego' => 'NEGO-004.pdf',
-                'file_lampiran' => 'Lampiran-NEGO-004.zip',
-                'progress' => 100
-            ],
-            [
-                'no_nego' => 'NEGO-005',
-                'tanggal' => '2024-04-10',
-                'batas_akhir' => '2024-04-25',
-                'nama_pekerjaan' => 'Pembangunan Mall',
-                'file_nego' => 'NEGO-005.pdf',
-                'file_lampiran' => 'Lampiran-NEGO-005.zip',
-                'progress' => 20
-            ],
-            [
-                'no_nego' => 'NEGO-006',
-                'tanggal' => '2024-04-05',
-                'batas_akhir' => '2024-04-20',
-                'nama_pekerjaan' => 'Renovasi Hotel',
-                'file_nego' => 'NEGO-006.pdf',
-                'file_lampiran' => 'Lampiran-NEGO-006.zip',
-                'progress' => 55
-            ]
-        ];
+        // Data akan diambil dari database
+        return [];
     }
 
     /**
@@ -346,44 +236,36 @@ class dashboardController extends Controller
      */
     private function getKontrakData(): array
     {
-        return [
-            [
-                'no_kontrak' => 'KTRK-001',
-                'batas_akhir' => '2024-12-31',
-                'nilai_harga_total' => 500000000,
-                'file_kontrak' => ['Kontrak-001.pdf', 'Lampiran-A.pdf', 'Lampiran-B.pdf']
-            ],
-            [
-                'no_kontrak' => 'KTRK-002',
-                'batas_akhir' => '2024-11-30',
-                'nilai_harga_total' => 250000000,
-                'file_kontrak' => ['Kontrak-002.pdf', 'Lampiran-C.pdf']
-            ],
-            [
-                'no_kontrak' => 'KTRK-003',
-                'batas_akhir' => '2024-10-31',
-                'nilai_harga_total' => 150000000,
-                'file_kontrak' => ['Kontrak-003.pdf', 'Lampiran-D.pdf', 'Lampiran-E.pdf', 'Lampiran-F.pdf']
-            ],
-            [
-                'no_kontrak' => 'KTRK-004',
-                'batas_akhir' => '2024-09-30',
-                'nilai_harga_total' => 1000000000,
-                'file_kontrak' => ['Kontrak-004.pdf', 'Lampiran-G.pdf']
-            ],
-            [
-                'no_kontrak' => 'KTRK-005',
-                'batas_akhir' => '2024-08-31',
-                'nilai_harga_total' => 2500000000,
-                'file_kontrak' => ['Kontrak-005.pdf', 'Lampiran-H.pdf', 'Lampiran-I.pdf']
-            ],
-            [
-                'no_kontrak' => 'KTRK-006',
-                'batas_akhir' => '2024-07-31',
-                'nilai_harga_total' => 750000000,
-                'file_kontrak' => ['Kontrak-006.pdf', 'Lampiran-J.pdf', 'Lampiran-K.pdf', 'Lampiran-L.pdf']
-            ]
-        ];
+        return \App\Models\Kontrak::orderBy('created_at', 'desc')->get()->map(function($kontrak) {
+            $normalizeFile = function($file) {
+                if (is_array($file) && isset($file['path']) && isset($file['name'])) {
+                    return $file;
+                } elseif (is_string($file)) {
+                    // Coba decode JSON jika string
+                    $decoded = json_decode($file, true);
+                    if (is_array($decoded) && isset($decoded['path']) && isset($decoded['name'])) {
+                        return $decoded;
+                    }
+                    // Jika bukan JSON, anggap sebagai path file
+                    return [
+                        'path' => $file,
+                        'name' => basename($file),
+                    ];
+                }
+                return null;
+            };
+            
+            return [
+                'no_kontrak' => $kontrak->nomor_kontrak,
+                'subkontraktor' => $kontrak->subkontraktor,
+                'tanggal' => $kontrak->tanggal,
+                'batas_akhir' => $kontrak->batas_akhir_kontrak,
+                'nama_proyek' => $kontrak->nama_proyek,
+                'uraian' => $kontrak->uraian,
+                'nilai_harga_total' => (int) $kontrak->harga_total,
+                'file_kontrak' => $normalizeFile($kontrak->dokumen_kontrak),
+            ];
+        })->toArray();
     }
 
     /**
@@ -391,13 +273,11 @@ class dashboardController extends Controller
      */
     private function getChartData(): array
     {
-        // Untuk status proyek, tetap gunakan getProjectData()
-        $projectData = $this->getProjectData();
-        // Untuk pie chart subkontraktor, gunakan data dari tabel SPH
-        $sphList = \App\Models\Sph::all();
+        // Ambil data subkontraktor dari tabel Kontrak
+        $kontrakList = \App\Models\Kontrak::all();
         $subkontraktorCounts = [];
-        foreach ($sphList as $sph) {
-            $subkon = strtoupper(trim($sph->subkontraktor ?? 'Tidak Diketahui'));
+        foreach ($kontrakList as $kontrak) {
+            $subkon = strtoupper(trim($kontrak->subkontraktor ?? 'Tidak Diketahui'));
             if (!isset($subkontraktorCounts[$subkon])) {
                 $subkontraktorCounts[$subkon] = 0;
             }
@@ -406,54 +286,100 @@ class dashboardController extends Controller
         // Daftar subkontraktor utama
         $mainSubs = ['INKA', 'IMS', 'IMST', 'IMSC', 'REKA'];
         $mainCounts = array_fill_keys($mainSubs, 0);
-        $otherCount = 0;
+        
+        // Hanya hitung subkontraktor yang ada dalam daftar utama
         foreach ($subkontraktorCounts as $subkon => $count) {
             if (in_array($subkon, $mainSubs)) {
                 $mainCounts[$subkon] += $count;
-            } else {
-                $otherCount += $count;
             }
         }
-        $subkonLabels = array_keys($mainCounts);
-        $subkonData = array_values($mainCounts);
-        if ($otherCount > 0) {
-            $subkonLabels[] = 'Lainnya';
-            $subkonData[] = $otherCount;
+        
+        // Hapus subkontraktor yang tidak memiliki data (count = 0)
+        $subkonLabels = [];
+        $subkonData = [];
+        foreach ($mainCounts as $subkon => $count) {
+            if ($count > 0) {
+                $subkonLabels[] = $subkon;
+                $subkonData[] = $count;
+            }
         }
         // Sinkronisasi warna dan struktur dengan status_pie_chart
         $colorPalette = [
-            'rgba(255, 99, 132, 0.8)',
-            'rgba(54, 162, 235, 0.8)',
-            'rgba(255, 206, 86, 0.8)',
-            'rgba(75, 192, 192, 0.8)',
-            'rgba(153, 102, 255, 0.8)',
-            'rgba(255, 159, 64, 0.8)',
-            'rgba(108, 117, 125, 0.8)',
-            'rgba(40, 167, 69, 0.8)',
-            'rgba(23, 162, 184, 0.8)',
-            'rgba(220, 53, 69, 0.8)',
-            'rgba(255, 193, 7, 0.8)',
-            'rgba(0, 123, 255, 0.8)'
+            'rgba(255, 99, 132, 0.8)',   // Merah
+            'rgba(54, 162, 235, 0.8)',   // Biru
+            'rgba(255, 206, 86, 0.8)',   // Kuning
+            'rgba(75, 192, 192, 0.8)',   // Cyan
+            'rgba(153, 102, 255, 0.8)'   // Ungu
         ];
         
-        // Extend color palette if needed
-        while (count($colorPalette) < count($subkonLabels)) {
-            $colorPalette[] = sprintf('rgba(%d, %d, %d, 0.8)', rand(0,255), rand(0,255), rand(0,255));
-        }
+        // Pastikan warna sesuai dengan jumlah label
+        $subkontraktorColors = array_slice($colorPalette, 0, count($subkonLabels));
+        // Data pie chart status proyek dari semua proyek yang ada di sistem
+        $spphList = Spph::orderBy('created_at', 'desc')->get();
+        $sphList = \App\Models\Sph::where('is_published', true)->orderBy('created_at', 'desc')->get();
+        $negoList = \App\Models\Nego::orderBy('created_at', 'desc')->get();
+        $kontrakList = \App\Models\Kontrak::orderBy('created_at', 'desc')->get();
+        $bappInternalList = Bapp::where('tipe', 'internal')->orderBy('created_at', 'desc')->get();
+        $bappEksternalList = Bapp::where('tipe', 'eksternal')->orderBy('created_at', 'desc')->get();
         
-        // Data pie chart status proyek dari progress di tabel
+        // Gabungkan semua nama proyek dari semua tabel
+        $allProjectNames = collect();
+        $allProjectNames = $allProjectNames->merge($spphList->pluck('nama_proyek'));
+        $allProjectNames = $allProjectNames->merge($sphList->pluck('nama_proyek'));
+        $allProjectNames = $allProjectNames->merge($negoList->pluck('nama_proyek'));
+        $allProjectNames = $allProjectNames->merge($kontrakList->pluck('nama_proyek'));
+        $allProjectNames = $allProjectNames->merge($bappInternalList->pluck('nama_proyek'));
+        $allProjectNames = $allProjectNames->merge($bappEksternalList->pluck('nama_proyek'));
+        
+        // Hapus duplikat dan nilai null
+        $uniqueProjectNames = $allProjectNames->filter()->unique()->values();
+        
         $progressMap = [
-            0 => '0% (Belum Mulai)',
-            33 => '33% (SPH)',
-            66 => '66% (SPH + Nego)',
-            100 => '100% (Kontrak)'
+            0 => '0% (SPPH)',
+            25 => '25% (SPH)',
+            50 => '50% (Negosiasi)',
+            75 => '75% (Kontrak)',
+            85 => '85% (BAPP Internal)',
+            100 => '100% (BAPP Eksternal)'
         ];
-        $progressCounts = [0 => 0, 33 => 0, 66 => 0, 100 => 0];
-        foreach ($projectData as $row) {
-            $p = (int)($row['progress'] ?? 0);
-            if (isset($progressCounts[$p])) {
-                $progressCounts[$p]++;
+        $progressCounts = [0 => 0, 25 => 0, 50 => 0, 75 => 0, 85 => 0, 100 => 0];
+        
+        foreach ($uniqueProjectNames as $projectName) {
+            // Cek status proyek berdasarkan data yang ada
+            $hasSpph = $spphList->where('nama_proyek', $projectName)->count() > 0;
+            $hasSph = $sphList->where('nama_proyek', $projectName)->count() > 0;
+            $hasNego = $negoList->where('nama_proyek', $projectName)->count() > 0;
+            $hasKontrak = $kontrakList->where('nama_proyek', $projectName)->count() > 0;
+            $hasBappInternal = $bappInternalList->where('nama_proyek', $projectName)->count() > 0;
+            $hasBappEksternal = $bappEksternalList->where('nama_proyek', $projectName)->count() > 0;
+            
+
+            
+            // Hitung progress berdasarkan status tertinggi
+            $progress = 0;
+            if ($hasBappEksternal) {
+                $progress = 100; // BAPP Eksternal ada (status tertinggi)
+            } elseif ($hasBappInternal) {
+                $progress = 85; // BAPP Internal ada
+            } elseif ($hasKontrak) {
+                $progress = 75; // Kontrak ada
+            } elseif ($hasNego) {
+                $progress = 50; // Negosiasi ada
+            } elseif ($hasSph) {
+                $progress = 25; // SPH ada
+            } elseif ($hasSpph) {
+                $progress = 0; // SPPH ada
             }
+            
+            // Mapping progress ke kategori
+            if ($progress === 0) $progressCounts[0]++;
+            elseif ($progress === 25) $progressCounts[25]++;
+            elseif ($progress === 50) $progressCounts[50]++;
+            elseif ($progress === 75) $progressCounts[75]++;
+            elseif ($progress === 85) $progressCounts[85]++;
+            elseif ($progress === 100) $progressCounts[100]++;
+            
+
         }
         $statusLabels = [];
         $statusCounts = [];
@@ -461,17 +387,21 @@ class dashboardController extends Controller
             $statusLabels[] = $progressMap[$p];
             $statusCounts[] = $count;
         }
+        
+
         $statusColors = [
             'rgba(108, 117, 125, 0.8)',   // Abu
             'rgba(54, 162, 235, 0.8)',    // Biru
             'rgba(255, 193, 7, 0.8)',     // Kuning
+            'rgba(0, 123, 255, 0.8)',     // Biru tua
+            'rgba(255, 159, 64, 0.8)',    // Oranye
             'rgba(40, 167, 69, 0.8)'      // Hijau
         ];
         return [
             'customer_pie_chart' => [
-            'labels' => $subkonLabels,
-            'data' => $subkonData,
-            'colors' => array_slice($colorPalette, 0, count($subkonLabels))
+                'labels' => $subkonLabels,
+                'data' => $subkonData,
+                'colors' => $subkontraktorColors
             ],
             'status_pie_chart' => [
                 'labels' => $statusLabels,
@@ -532,12 +462,11 @@ class dashboardController extends Controller
                 'sph' => $project['sph'],
                 'nego' => $project['nego'],
                 'kontrak' => $project['kontrak'],
-                'customer' => $project['customer'],
-                'nomor_kontrak' => $project['nomor_kontrak'],
-                'tanggal_kontrak' => $project['tanggal_kontrak'],
-                'status' => self::getStatusBadge($project['status']),
-                'estimasi_nilai_formatted' => self::formatCurrency($project['estimasi_nilai']),
-                'progress_bar' => self::getProgressBar($project['progress'], $project['status'])
+                'bapp_internal' => $project['bapp_internal'] ?? '-',
+                'bapp_eksternal' => $project['bapp_eksternal'] ?? '-',
+                'progress' => $project['progress'] ?? 0,
+                'progress_class' => $project['progress_class'] ?? 'bg-danger',
+                'progress_bar' => self::getProgressBar($project['progress'] ?? 0, null, $project['progress_class'] ?? 'bg-danger')
             ];
         });
 
@@ -569,9 +498,15 @@ class dashboardController extends Controller
     public static function getProgressBar($progress, $status = null, $progressClass = null)
     {
         $barClass = 'progress-bar';
-        if ($progressClass) {
-            $barClass .= ' ' . $progressClass;
+        // Pewarnaan konsisten
+        if (!$progressClass) {
+            if ($progress == 100) $progressClass = 'bg-success';
+            elseif ($progress == 75) $progressClass = 'bg-orange';
+            elseif ($progress == 50) $progressClass = 'bg-warning';
+            elseif ($progress == 25) $progressClass = 'bg-primary';
+            else $progressClass = 'bg-danger';
         }
+        $barClass .= ' ' . $progressClass;
         return "<div class=\"progress\"><div class=\"{$barClass}\" role=\"progressbar\" style=\"width: {$progress}%\">{$progress}%</div></div>";
     }
 
@@ -598,12 +533,9 @@ class dashboardController extends Controller
                 'sph' => $project['sph'],
                 'nego' => $project['nego'],
                 'kontrak' => $project['kontrak'],
-                'customer' => $project['customer'],
-                'nomor_kontrak' => $project['nomor_kontrak'],
-                'tanggal_kontrak' => $project['tanggal_kontrak'],
-                'status' => self::getStatusBadge($project['status']),
-                'estimasi_nilai' => self::formatCurrency($project['estimasi_nilai']),
-                'progress' => self::getProgressBar($project['progress'], $project['status']),
+                'bapp_internal' => $project['bapp_internal'] ?? '-',
+                'bapp_eksternal' => $project['bapp_eksternal'] ?? '-',
+                'progress' => self::getProgressBar($project['progress'] ?? 0, null, $project['progress_class'] ?? 'bg-danger'),
                 'actions' => '<button class="btn btn-sm btn-info">Detail</button> <button class="btn btn-sm btn-warning">Edit</button>'
             ];
         });
@@ -665,6 +597,96 @@ class dashboardController extends Controller
                         'message' => $msg,
                         'is_read' => false,
                     ]);
+                }
+            }
+        }
+    }
+
+    // Ubah dari private ke public agar bisa dipanggil dari luar
+    public function generateNotifikasiSpph()
+    {
+        $spphs = \App\Models\Spph::all();
+        $now = now();
+        $reminderDays = [21, 14, 7];
+        $publishedSphProjects = \App\Models\Sph::where('is_published', true)->pluck('nama_proyek')->toArray();
+        foreach ($spphs as $spph) {
+            // Jika proyek sudah ada di SPH, hapus SEMUA notifikasi SPPH untuk proyek ini dan lanjut ke proyek berikutnya
+            if (in_array($spph->nama_proyek, $publishedSphProjects)) {
+                \App\Models\Notification::where('type', 'spph')
+                    ->where('nama_proyek', $spph->nama_proyek)
+                    ->delete();
+                continue;
+            }
+            $batasAkhir = $spph->batas_akhir_sph;
+            if (!$batasAkhir) continue;
+            $batasAkhirDate = \Carbon\Carbon::parse($batasAkhir);
+            foreach ($reminderDays as $reminder) {
+                $targetDate = $batasAkhirDate->copy()->subDays($reminder);
+                // Jika hari ini >= targetDate dan batas akhir di masa depan
+                if ($now->greaterThanOrEqualTo($targetDate) && $batasAkhirDate->isFuture()) {
+                    $msg = 'Batas akhir SPPH untuk proyek "'.$spph->nama_proyek.'" tinggal '.($reminder/7).' minggu lagi!';
+                    $exists = \App\Models\Notification::where('type', 'spph')
+                        ->where('nama_proyek', $spph->nama_proyek)
+                        ->where('batas_akhir', $batasAkhirDate)
+                        ->where('message', $msg)
+                        ->exists();
+                    if (!$exists) {
+                        $level = $reminder == 21 ? 'yellow' : ($reminder == 14 ? 'orange' : 'red');
+                        \App\Models\Notification::create([
+                            'kontrak_id' => null,
+                            'nama_proyek' => $spph->nama_proyek,
+                            'batas_akhir' => $batasAkhirDate,
+                            'message' => $msg,
+                            'is_read' => false,
+                            'type' => 'spph',
+                        ]);
+                    }
+                }
+            }
+        }
+    }
+
+    // Ubah dari private ke public agar bisa dipanggil dari luar
+    public function generateNotifikasiKontrak()
+    {
+        $kontraks = \App\Models\Kontrak::all();
+        $now = now();
+        $reminderDays = [21, 14, 7];
+        $bappInternalProjects = \App\Models\Bapp::where('tipe', 'internal')->pluck('nama_proyek')->toArray();
+        foreach ($kontraks as $kontrak) {
+            $batasAkhir = $kontrak->batas_akhir_kontrak;
+            if (!$batasAkhir) continue;
+            $batasAkhirDate = \Carbon\Carbon::parse($batasAkhir);
+            $isInBappInternal = in_array($kontrak->nama_proyek, $bappInternalProjects);
+            foreach ($reminderDays as $reminder) {
+                $targetDate = $batasAkhirDate->copy()->subDays($reminder);
+                // Jika proyek sudah ada di BAPP INTERNAL, hanya izinkan notifikasi 3 minggu, hapus notifikasi 2/1 minggu yang sudah ada
+                if ($isInBappInternal && $reminder < 21) {
+                    \App\Models\Notification::where('type', 'kontrak')
+                        ->where('kontrak_id', $kontrak->id)
+                        ->where('batas_akhir', $batasAkhirDate)
+                        ->where(function($q){ $q->where('message', 'like', '%2 minggu%')->orWhere('message', 'like', '%1 minggu%'); })
+                        ->delete();
+                    continue;
+                }
+                if ($now->greaterThanOrEqualTo($targetDate) && $batasAkhirDate->isFuture()) {
+                    $msg = 'Batas akhir kontrak untuk proyek "'.$kontrak->nama_proyek.'" tinggal '.($reminder/7).' minggu lagi!';
+                    $exists = \App\Models\Notification::where('type', 'kontrak')
+                        ->where('kontrak_id', $kontrak->id)
+                        ->where('batas_akhir', $batasAkhirDate)
+                        ->where('message', $msg)
+                        ->exists();
+                    if (!$exists && (!$isInBappInternal || $reminder == 21)) {
+                        $level = $reminder == 21 ? 'yellow' : ($reminder == 14 ? 'orange' : 'red');
+                        \App\Models\Notification::create([
+                            'kontrak_id' => $kontrak->id,
+                            'nama_proyek' => $kontrak->nama_proyek,
+                            'batas_akhir' => $batasAkhirDate,
+                            'message' => $msg,
+                            'is_read' => false,
+                            'type' => 'kontrak',
+                        ]);
+                    }
                 }
             }
         }

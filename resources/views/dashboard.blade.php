@@ -1,30 +1,62 @@
 @extends('layouts.app')
 
+@section('title', 'Dasbor Pemantauan Proyek | Dashboard')
+
 @section('content')
                     <div class="container-fluid">
                         <div class="d-flex justify-content-end align-items-center mb-2">
                             <div class="dropdown">
-                                <button class="btn btn-light position-relative dropdown-toggle" type="button" id="notifDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="fas fa-bell fa-lg"></i>
+                                <button class="btn btn-light position-relative dropdown-toggle" type="button" id="notifDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="color:#000;">
+                                    <i class="fas fa-bell fa-lg" style="color:#000;"></i>
                                     @if(isset($unreadCount) && $unreadCount > 0)
                                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ $unreadCount }}</span>
                                     @endif
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="notifDropdown" style="min-width:320px;max-width:400px;">
-                                    <li class="dropdown-header fw-bold">Notifikasi Batas Akhir Proyek</li>
-                                    @forelse($notifications as $notif)
-                                        <li class="px-3 py-2 border-bottom small">
-                                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                    <li class="dropdown-header fw-bold">Notifikasi SPPH</li>
+                                    @php $notifSpph = isset($filtered) ? $filtered->where('type','spph') : collect(); @endphp
+                                    @forelse($notifSpph as $notif)
+                                        @php
+                                            $color = 'bg-warning'; // default kuning
+                                            if(str_contains($notif->message, '2 minggu')) $color = 'bg-orange';
+                                            if(str_contains($notif->message, '1 minggu')) $color = 'bg-danger text-white';
+                                        @endphp
+                                        <li class="px-3 py-2 border-bottom small {{ $color }}">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
                                             <span class="fw-bold">{{ $notif->nama_proyek }}</span><br>
                                             <span class="text-muted">{{ $notif->message }}</span><br>
-                                            <span class="text-muted"><i class="far fa-clock"></i> {{ \Carbon\Carbon::parse($notif->batas_akhir)->translatedFormat('d M Y H:i') }}</span>
+                                            <span class="text-muted"><i class="far fa-clock"></i> {{ \Carbon\Carbon::parse($notif->batas_akhir)->format('d/m/Y') }}</span>
                                             <button class="btn btn-sm btn-outline-success mt-2 btn-mark-read" data-id="{{ $notif->id }}" @if($notif->is_read) disabled @endif>
                                                 {{ $notif->is_read ? 'Sudah Dibaca' : 'Sudah Dibaca' }}
                                             </button>
                                         </li>
                                     @empty
-                                        <li class="px-3 py-2 text-muted">Tidak ada notifikasi.</li>
+                                        <li class="px-3 py-2 text-muted">Tidak ada notifikasi SPPH.</li>
                                     @endforelse
+                                    <li class="dropdown-header fw-bold">Notifikasi Kontrak</li>
+                                    @php $notifKontrak = isset($filtered) ? $filtered->where('type','kontrak') : collect(); @endphp
+                                    @forelse($notifKontrak as $notif)
+                                        @php
+                                            $color = 'bg-warning';
+                                            if(str_contains($notif->message, '2 minggu')) $color = 'bg-orange';
+                                            if(str_contains($notif->message, '1 minggu')) $color = 'bg-danger text-white';
+                                        @endphp
+                                        <li class="px-3 py-2 border-bottom small {{ $color }}">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <span class="fw-bold">{{ $notif->nama_proyek }}</span><br>
+                                            <span class="text-muted">{{ $notif->message }}</span><br>
+                                            <span class="text-muted"><i class="far fa-clock"></i> {{ \Carbon\Carbon::parse($notif->batas_akhir)->format('d/m/Y') }}</span>
+                                            <button class="btn btn-sm btn-outline-success mt-2 btn-mark-read" data-id="{{ $notif->id }}" @if($notif->is_read) disabled @endif>
+                                                {{ $notif->is_read ? 'Sudah Dibaca' : 'Sudah Dibaca' }}
+                                            </button>
+                                        </li>
+                                    @empty
+                                        <li class="px-3 py-2 text-muted">Tidak ada notifikasi kontrak.</li>
+                                    @endforelse
+                                    <div class="dropdown-divider"></div>
+                                    <div class="text-center py-2">
+                                        <a href="{{ route('notifikasi.list') }}" class="btn btn-link btn-sm">Lihat Semua Notifikasi</a>
+                                    </div>
                                 </ul>
                             </div>
                         </div>
@@ -32,13 +64,13 @@
         <li class="breadcrumb-item active">Dasbor Pemantauan Proyek</li>
                         </ol>
                         <div class="row">
-                            <div class="col-xl-4 col-md-6">
+                            <div class="col-xl-4 col-md-4">
                                 <div class="card bg-primary text-white mb-4">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between">
                                             <div>
                                                 <h4>{{ $dashboardStats['target_sales'] }}</h4>
-                                                <div>Target Penjualan</div>
+                                                <div>Pesanan Masuk</div>
                                             </div>
                                             <div class="align-self-center">
                                                 <i class="fas fa-dollar-sign fa-2x"></i>
@@ -46,31 +78,31 @@
                                         </div>
                                     </div>
                                     <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#" onclick="showDataProyekSection()">Lihat Rincian</a>
+                                        <a id="btnLihatRincianKontrak" class="small text-white stretched-link" href="javascript:void(0)" data-toggle="modal" data-target="#kontrakListModal">Lihat Rincian</a>
                                         <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-xl-4 col-md-6">
-                                <div class="card bg-warning text-white mb-4">
+                            <div class="col-xl-4 col-md-4">
+                                <div class="card bg-success text-white mb-4">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between">
                                             <div>
-                                                <h4>{{ $dashboardStats['target_pemasaran'] }}</h4>
-                                                <div>Target Pemasaran</div>
+                                                <h4>{{ $dashboardStats['penjualan'] }}</h4>
+                                                <div>Penjualan</div>
                                             </div>
                                             <div class="align-self-center">
-                                                <i class="fas fa-bullhorn fa-2x"></i>
+                                                <i class="fas fa-cash-register fa-2x"></i>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="card-footer d-flex align-items-center justify-content-between">
-                                        <a class="small text-white stretched-link" href="#" onclick="showDataProyekSection()">Lihat Rincian</a>
+                                        <a id="btnLihatRincianBappEksternal" class="small text-white stretched-link" href="javascript:void(0)" data-toggle="modal" data-target="#bappEksternalListModal">Lihat Rincian</a>
                                         <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-xl-4 col-md-12">
+                            <div class="col-xl-4 col-md-4">
                                 <div class="card bg-info text-white mb-4">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between">
@@ -95,7 +127,7 @@
                                 <div class="card mb-4">
                                     <div class="card-header">
                                         <i class="fas fa-chart-pie mr-1"></i>
-                                        Sebaran Proyek per Subkontraktor
+                                        Sebaran Proyek per Pelanggan
                                     </div>
                                     <div class="card-body">
                                         <div style="position:relative;min-height:220px;max-height:220px;display:flex;align-items:center;justify-content:center;">
@@ -162,11 +194,13 @@
                                                 <thead>
                                                     <tr>
                                                         <th>No</th>
-                                                        <th>Nama Proyek</th>
+                                                        <th>Kode - Nama Proyek</th>
                                                         <th>SPPH</th>
                                                         <th>SPH</th>
                                                         <th>Negosiasi</th>
                                                         <th>Kontrak</th>
+                                                        <th>BAPP INTERNAL</th>
+                                                        <th>BAPP EKSTERNAL</th>
                                                         <th>Kemajuan</th>
                                                     </tr>
                                                 </thead>
@@ -174,11 +208,13 @@
                         @foreach($projectData as $index => $project)
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ $project['nama'] }}</td>
+                            <td>{{ $project['kode'] ?? '' }} - {{ $project['nama'] ?? '' }}</td>
                             <td>{!! $project['spph'] !!}</td>
                             <td>{!! $project['sph'] !!}</td>
                             <td>{!! $project['nego'] !!}</td>
                             <td>{!! $project['kontrak'] !!}</td>
+                            <td>{!! $project['bapp_internal'] !!}</td>
+                            <td>{!! $project['bapp_eksternal'] !!}</td>
                             <td>
                                 {!! \App\Http\Controllers\dashboardController::getProgressBar($project['progress'], null, $project['progress_class']) !!}
                                                 </td>
@@ -223,33 +259,202 @@
     </div>
   </div>
 </div>
+<!-- Modal Detail BAPP INTERNAL -->
+<div class="modal fade" id="bappInternalInfoModal" tabindex="-1" role="dialog" aria-labelledby="bappInternalInfoModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bappInternalInfoModalLabel">Detail BAPP INTERNAL</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="bappInternalInfoContent">
+        <!-- Konten info BAPP INTERNAL akan diisi via JS -->
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal Detail BAPP EKSTERNAL -->
+<div class="modal fade" id="bappEksternalInfoModal" tabindex="-1" role="dialog" aria-labelledby="bappEksternalInfoModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bappEksternalInfoModalLabel">Detail BAPP EKSTERNAL</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="bappEksternalInfoContent">
+        <!-- Konten info BAPP EKSTERNAL akan diisi via JS -->
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal Daftar Kontrak -->
+<div class="modal fade" id="kontrakListModal" tabindex="-1" role="dialog" aria-labelledby="kontrakListModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="kontrakListModalLabel">Daftar Kontrak</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped" id="modalKontrakTable" width="100%">
+            <thead class="table-light">
+              <tr>
+                <th>No</th>
+                <th>Kode - Nama Proyek</th>
+                <th>Uraian</th>
+                <th>Harga Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($kontrakData as $i => $kontrak)
+              <tr>
+                <td>{{ $i+1 }}</td>
+                <td>{{ $kontrak['nama_proyek'] ?? '-' }}</td>
+                <td>{{ $kontrak['uraian'] ?? '-' }}</td>
+                <td>Rp {{ isset($kontrak['nilai_harga_total']) ? number_format($kontrak['nilai_harga_total'],0,',','.') : '-' }}</td>
+              </tr>
+              @empty
+              <tr><td colspan="4" class="text-center text-muted">Tidak ada data kontrak.</td></tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal Daftar BAPP Eksternal -->
+<div class="modal fade" id="bappEksternalListModal" tabindex="-1" role="dialog" aria-labelledby="bappEksternalListModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="bappEksternalListModalLabel">Daftar BAPP Eksternal</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped" id="modalBappEksternalTable" width="100%">
+            <thead class="table-light">
+              <tr>
+                <th>No</th>
+                <th>Nomor BAPP</th>
+                <th>Nomor PO</th>
+                <th>Tanggal PO</th>
+                <th>Tanggal Terima</th>
+                <th>Kode - Nama Proyek</th>
+                <th>Harga Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($dashboardStats['bapp_eksternal_data'] as $i => $bapp)
+              <tr>
+                <td>{{ $i+1 }}</td>
+                <td>{{ $bapp->nomor_bapp ?? '-' }}</td>
+                <td>{{ $bapp->no_po ?? '-' }}</td>
+                <td>{{ $bapp->tanggal_po ? \Carbon\Carbon::parse($bapp->tanggal_po)->format('d/m/Y') : '-' }}</td>
+                <td>{{ $bapp->tanggal_terima ? \Carbon\Carbon::parse($bapp->tanggal_terima)->format('d/m/Y') : '-' }}</td>
+                <td>{{ $bapp->nama_proyek ?? '-' }}</td>
+                <td>Rp {{ isset($bapp->harga_total) ? number_format($bapp->harga_total,0,',','.') : '-' }}</td>
+              </tr>
+              @empty
+              <tr><td colspan="7" class="text-center text-muted">Tidak ada data BAPP eksternal.</td></tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="d-flex align-items-center justify-content-end small">
+    <div class="text-muted">&copy; IT IMSS 2025</div>
+</div>
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+<script>
+// Animasi angka dinamis
+function animateNumber(el, start, end, duration, prefix = '', suffix = '') {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const value = Math.floor(progress * (end - start) + start);
+        el.textContent = prefix + value.toLocaleString('id-ID') + suffix;
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            el.textContent = prefix + end.toLocaleString('id-ID') + suffix;
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+// Animasi progress bar
+function animateProgressBar(bar, target) {
+    let width = 0;
+    const step = () => {
+        width += Math.max(1, Math.ceil(target/30));
+        if (width > target) width = target;
+        bar.style.width = width + '%';
+        bar.textContent = width + '%';
+        if (width < target) {
+            setTimeout(step, 12);
+        } else {
+            bar.style.width = target + '%';
+            bar.textContent = target + '%';
+        }
+    };
+    bar.style.width = '0%';
+    bar.textContent = '0%';
+    step();
+}
+$(document).ready(function() {
+    // Card animasi angka
+    var pesananMasuk = {{ (int)str_replace(['Rp', '.', ' '], '', $dashboardStats['target_sales']) }};
+    var jumlahProyek = {{ (int)$dashboardStats['total_proyek'] }};
+    var pesananEl = $(".card.bg-primary h4").get(0);
+    var proyekEl = $(".card.bg-info h4").get(0);
+    if (pesananEl) animateNumber(pesananEl, 0, pesananMasuk, 1200, 'Rp ');
+    if (proyekEl) animateNumber(proyekEl, 0, jumlahProyek, 1200);
+    // Progress bar animasi
+    function animateAllProgressBars() {
+        $('#dataTable .progress-bar').each(function() {
+            var bar = this;
+            var target = parseInt(bar.textContent) || 0;
+            animateProgressBar(bar, target);
+        });
+    }
+    animateAllProgressBars();
+    // Ulangi animasi progress bar saat DataTable di-draw ulang
+    $('#dataTable').on('draw.dt', function() {
+        animateAllProgressBars();
+    });
+});
+</script>
         <script>
 let chartData = @json($chartData);
-// Data dummy jika chartData kosong/null
-if (!chartData || !chartData.customer_pie_chart || !chartData.status_pie_chart) {
+// Pastikan chartData ada sebelum digunakan
+if (!chartData) {
     chartData = {
         customer_pie_chart: {
-            labels: ['Pelanggan A', 'Pelanggan B', 'Pelanggan C'],
-            data: [5, 3, 4],
-            colors: [
-                'rgba(255, 99, 132, 0.8)',
-                'rgba(54, 162, 235, 0.8)',
-                'rgba(255, 206, 86, 0.8)'
-            ]
+            labels: [],
+            data: [],
+            colors: []
         },
         status_pie_chart: {
-            labels: ['Berjalan', 'Selesai', 'Menunggu', 'Ditolak'],
-            data: [6, 2, 3, 1],
-            colors: [
-                'rgba(40, 167, 69, 0.8)',
-                'rgba(108, 117, 125, 0.8)',
-                'rgba(255, 193, 7, 0.8)',
-                'rgba(220, 53, 69, 0.8)'
-            ]
+            labels: [],
+            data: [],
+            colors: []
         }
     };
 }
@@ -315,38 +520,38 @@ $(document).ready(function() {
         var html = '<div class="table-responsive"><table class="table table-bordered">';
         html += '<thead><tr>';
         if (tipe === 'spph') {
-            html += '<th>Nomor SPPH</th><th>Subkontraktor</th><th>Tanggal</th><th>Batas Akhir SPH</th><th>Uraian</th>';
+                                html += '<th>Nomor SPPH</th><th>Pelanggan</th><th>Tanggal</th><th>Batas Akhir SPH</th><th>Uraian</th>';
         } else if (tipe === 'sph') {
-            html += '<th>Nomor SPH</th><th>Subkontraktor</th><th>Tanggal</th><th>Uraian</th><th>Harga Total</th>';
+            html += '<th>Nomor SPH</th><th>Pelanggan</th><th>Tanggal</th><th>Uraian</th><th>Harga Total</th>';
         } else if (tipe === 'nego') {
-            html += '<th>Nomor Nego</th><th>Subkontraktor</th><th>Tanggal</th><th>Uraian</th><th>Harga Total</th>';
+            html += '<th>Nomor Nego</th><th>Pelanggan</th><th>Tanggal</th><th>Uraian</th><th>Harga Total</th>';
         } else if (tipe === 'kontrak') {
-            html += '<th>Nomor Kontrak</th><th>Subkontraktor</th><th>Tanggal</th><th>Batas Akhir Kontrak</th><th>Uraian</th><th>Harga Total</th>';
+            html += '<th>Nomor Kontrak</th><th>Pelanggan</th><th>Tanggal</th><th>Batas Akhir Kontrak</th><th>Uraian</th><th>Harga Total</th>';
         }
         html += '</tr></thead><tbody><tr>';
         if (tipe === 'spph') {
             html += '<td>' + (data.no_spph || '-') + '</td>';
             html += '<td>' + (data.subkontraktor || '-') + '</td>';
-            html += '<td>' + (data.tanggal || '-') + '</td>';
-            html += '<td>' + (data.batas_akhir || '-') + '</td>';
+            html += '<td>' + (data.tanggal ? new Date(data.tanggal).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}) : '-') + '</td>';
+            html += '<td>' + (data.batas_akhir ? new Date(data.batas_akhir).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}) : '-') + '</td>';
             html += '<td>' + (data.uraian || '-') + '</td>';
         } else if (tipe === 'sph') {
             html += '<td>' + (data.no_sph || '-') + '</td>';
             html += '<td>' + (data.subkontraktor || '-') + '</td>';
-            html += '<td>' + (data.tanggal || '-') + '</td>';
+            html += '<td>' + (data.tanggal ? new Date(data.tanggal).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}) : '-') + '</td>';
             html += '<td>' + (data.uraian || '-') + '</td>';
             html += '<td>' + (data.harga_total ? formatRupiah(data.harga_total) : '-') + '</td>';
         } else if (tipe === 'nego') {
             html += '<td>' + (data.no_nego || '-') + '</td>';
             html += '<td>' + (data.subkontraktor || '-') + '</td>';
-            html += '<td>' + (data.tanggal || '-') + '</td>';
+            html += '<td>' + (data.tanggal ? new Date(data.tanggal).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}) : '-') + '</td>';
             html += '<td>' + (data.uraian || '-') + '</td>';
             html += '<td>' + (data.harga_total ? formatRupiah(data.harga_total) : '-') + '</td>';
         } else if (tipe === 'kontrak') {
             html += '<td>' + (data.no_kontrak || '-') + '</td>';
             html += '<td>' + (data.subkontraktor || '-') + '</td>';
-            html += '<td>' + (data.tanggal || '-') + '</td>';
-            html += '<td>' + (data.batas_akhir || '-') + '</td>';
+            html += '<td>' + (data.tanggal ? new Date(data.tanggal).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}) : '-') + '</td>';
+            html += '<td>' + (data.batas_akhir ? new Date(data.batas_akhir).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}) : '-') + '</td>';
             html += '<td>' + (data.uraian || '-') + '</td>';
             html += '<td>' + (data.harga_total ? formatRupiah(data.harga_total) : '-') + '</td>';
         }
@@ -375,13 +580,13 @@ $(document).ready(function() {
             var data = res.data.filter(function(item) { return item.tipe === 'hasil'; });
             if(data.length > 0) {
                 var html = '<div class="table-responsive"><table class="table table-bordered">';
-                html += '<thead><tr><th>No</th><th>Nomor Negosiasi</th><th>Subkontraktor</th><th>Tanggal</th><th>Harga Total</th></tr></thead><tbody>';
+                html += '<thead><tr><th>No</th><th>Nomor Negosiasi</th><th>Pelanggan</th><th>Tanggal</th><th>Harga Total</th></tr></thead><tbody>';
                 data.forEach(function(item, idx) {
                     html += '<tr>';
                     html += '<td>' + (idx + 1) + '</td>';
                     html += '<td>' + (item.nomor_nego ?? '-') + '</td>';
                     html += '<td>' + (item.subkontraktor ?? '-') + '</td>';
-                    html += '<td>' + (item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID') : '-') + '</td>';
+                    html += '<td>' + (item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', year: 'numeric'}) : '-') + '</td>';
                     html += '<td>' + (item.harga_total ? formatRupiah(item.harga_total) : '-') + '</td>';
                     html += '</tr>';
                 });
@@ -415,4 +620,60 @@ $(document).ready(function() {
     });
             });
         </script>
+<script>
+$(document).ready(function() {
+  // Inisialisasi DataTable
+  $('#modalKontrakTable').DataTable({
+    "language": {
+      "decimal":        "",
+      "emptyTable":    "Tidak ada data yang tersedia",
+      "info":          "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+      "infoEmpty":     "Menampilkan 0 sampai 0 dari 0 entri",
+      "infoFiltered":  "(difilter dari _MAX_ total entri)",
+      "infoPostFix":   "",
+      "thousands":     ",",
+      "lengthMenu":    "Tampilkan _MENU_ entri",
+      "loadingRecords": "Memuat...",
+      "processing":    "Memproses...",
+      "search":        "Cari:",
+      "zeroRecords":   "Tidak ditemukan data yang sesuai",
+      "paginate": {
+        "first":      "Pertama",
+        "last":       "Terakhir",
+        "next":       "Selanjutnya",
+        "previous":   "Sebelumnya"
+      },
+      "aria": {
+        "sortAscending":  ": aktifkan untuk mengurutkan kolom naik",
+        "sortDescending": ": aktifkan untuk mengurutkan kolom turun"
+      }
+    },
+    "pageLength": 10,
+    "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+    "order": [[0, "asc"]],
+    "responsive": true,
+    dom: 'rtip'
+  });
+  // Buka modal secara manual jika ada masalah event
+  $('#btnLihatRincianKontrak').on('click', function(e) {
+    e.preventDefault();
+    $('#kontrakListModal').modal('show');
+  });
+  $('#kontrakListModal').on('shown.bs.modal', function () {
+    $('#modalKontrakTable').DataTable().columns.adjust().responsive.recalc();
+    });
+            });
+        </script>
+@endpush
+
+@push('styles')
+<style>
+.bg-orange { background-color: #fd7e14 !important; color: #fff; }
+.bg-danger { background-color: #dc3545 !important; color: #fff; }
+.bg-warning { background-color: #ffe066 !important; color: #000; }
+.progress-bar.bg-danger {
+    color: #000 !important;
+    font-weight: bold;
+}
+</style>
 @endpush

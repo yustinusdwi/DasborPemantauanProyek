@@ -558,7 +558,7 @@
                                     <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                         <thead>
                                             <tr>
-                                                <th>Nama Proyek</th>
+                                                <th>Nama - Kode Proyek</th>
                                                 <th>Status</th>
                                                 <th>Progress</th>
                                                 <th>Estimasi Nilai</th>
@@ -566,9 +566,9 @@
                                                 <th>Aksi</th>
                                             </tr>
                                         </thead>
-                                        <!-- <tfoot>
+                                        <!--                                         <tfoot>
                                             <tr>
-                                                <th>Nama Proyek</th>
+                                                <th>Nama - Kode Proyek</th>
                                                 <th>Status</th>
                                                 <th>Progress</th>
                                                 <th>Estimasi Nilai</th>
@@ -577,96 +577,8 @@
                                             </tr>
                                         </tfoot> -->
                                         <tbody>
-                                            <tr>
-                                                <td>Pembangunan Gedung A</td>
-                                                <td><span class="badge badge-success">Aktif</span></td>
-                                                <td>
-                                                    <div class="progress">
-                                                        <div class="progress-bar" role="progressbar" style="width: 75%">75%</div>
-                                                    </div>
-                                                </td>
-                                                <td>Rp 500.000.000</td>
-                                                <td>2024-01-15</td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-info">Detail</button>
-                                                    <button class="btn btn-sm btn-warning">Edit</button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Renovasi Kantor B</td>
-                                                <td><span class="badge badge-warning">Pending</span></td>
-                                                <td>
-                                                    <div class="progress">
-                                                        <div class="progress-bar" role="progressbar" style="width: 25%">25%</div>
-                                                    </div>
-                                                </td>
-                                                <td>Rp 250.000.000</td>
-                                                <td>2024-02-20</td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-info">Detail</button>
-                                                    <button class="btn btn-sm btn-warning">Edit</button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Instalasi Sistem IT</td>
-                                                <td><span class="badge badge-success">Aktif</span></td>
-                                                <td>
-                                                    <div class="progress">
-                                                        <div class="progress-bar" role="progressbar" style="width: 90%">90%</div>
-                                                    </div>
-                                                </td>
-                                                <td>Rp 150.000.000</td>
-                                                <td>2024-03-10</td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-info">Detail</button>
-                                                    <button class="btn btn-sm btn-warning">Edit</button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Pembangunan Jembatan</td>
-                                                <td><span class="badge badge-secondary">Selesai</span></td>
-                                                <td>
-                                                    <div class="progress">
-                                                        <div class="progress-bar" role="progressbar" style="width: 100%">100%</div>
-                                                    </div>
-                                                </td>
-                                                <td>Rp 1.000.000.000</td>
-                                                <td>2024-01-05</td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-info">Detail</button>
-                                                    <button class="btn btn-sm btn-warning">Edit</button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Pembangunan Mall</td>
-                                                <td><span class="badge badge-danger">Dibatalkan</span></td>
-                                                <td>
-                                                    <div class="progress">
-                                                        <div class="progress-bar bg-danger" role="progressbar" style="width: 10%">10%</div>
-                                                    </div>
-                                                </td>
-                                                <td>Rp 2.500.000.000</td>
-                                                <td>2024-04-01</td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-info">Detail</button>
-                                                    <button class="btn btn-sm btn-warning">Edit</button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>Renovasi Hotel</td>
-                                                <td><span class="badge badge-success">Aktif</span></td>
-                                                <td>
-                                                    <div class="progress">
-                                                        <div class="progress-bar" role="progressbar" style="width: 45%">45%</div>
-                                                    </div>
-                                                </td>
-                                                <td>Rp 750.000.000</td>
-                                                <td>2024-03-25</td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-info">Detail</button>
-                                                    <button class="btn btn-sm btn-warning">Edit</button>
-                                                </td>
-                                            </tr>
+                                            <!-- Data akan diambil dari database -->
+                                        </tbody>
 
                                                 <td>Developer</td>
                                                 <td>Edinburgh</td>
@@ -957,102 +869,8 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr>
-                                                    <td>Pembangunan Gedung A</td>
-                                                    <td>KTRK-001</td>
-                                                    <td>2024-01-15</td>
-                                                    <td><span class="badge badge-success">Aktif</span></td>
-                                                    <td>Rp 500.000.000</td>
-                                                    <td>
-                                                        <div class="progress">
-                                                            <div class="progress-bar" role="progressbar" style="width: 75%">75%</div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <button class="btn btn-sm btn-info">Detail</button>
-                                                        <button class="btn btn-sm btn-warning">Edit</button>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Renovasi Kantor B</td>
-                                                    <td>KTRK-002</td>
-                                                    <td>2024-02-20</td>
-                                                    <td><span class="badge badge-warning">Pending</span></td>
-                                                    <td>Rp 250.000.000</td>
-                                                    <td>
-                                                        <div class="progress">
-                                                            <div class="progress-bar" role="progressbar" style="width: 25%">25%</div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <button class="btn btn-sm btn-info">Detail</button>
-                                                        <button class="btn btn-sm btn-warning">Edit</button>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Instalasi Sistem IT</td>
-                                                    <td>KTRK-003</td>
-                                                    <td>2024-03-10</td>
-                                                    <td><span class="badge badge-success">Aktif</span></td>
-                                                    <td>Rp 150.000.000</td>
-                                                    <td>
-                                                        <div class="progress">
-                                                            <div class="progress-bar" role="progressbar" style="width: 90%">90%</div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <button class="btn btn-sm btn-info">Detail</button>
-                                                        <button class="btn btn-sm btn-warning">Edit</button>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Pembangunan Jembatan</td>
-                                                    <td>KTRK-004</td>
-                                                    <td>2024-01-05</td>
-                                                    <td><span class="badge badge-secondary">Selesai</span></td>
-                                                    <td>Rp 1.000.000.000</td>
-                                                    <td>
-                                                        <div class="progress">
-                                                            <div class="progress-bar" role="progressbar" style="width: 100%">100%</div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <button class="btn btn-sm btn-info">Detail</button>
-                                                        <button class="btn btn-sm btn-warning">Edit</button>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Pembangunan Mall</td>
-                                                    <td>KTRK-005</td>
-                                                    <td>2024-04-01</td>
-                                                    <td><span class="badge badge-danger">Dibatalkan</span></td>
-                                                    <td>Rp 2.500.000.000</td>
-                                                    <td>
-                                                        <div class="progress">
-                                                            <div class="progress-bar bg-danger" role="progressbar" style="width: 10%">10%</div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <button class="btn btn-sm btn-info">Detail</button>
-                                                        <button class="btn btn-sm btn-warning">Edit</button>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Renovasi Hotel</td>
-                                                    <td>KTRK-006</td>
-                                                    <td>2024-03-25</td> 
-                                                    <td><span class="badge badge-success">Aktif</span></td>
-                                                    <td>Rp 750.000.000</td>
-                                                    <td>
-                                                        <div class="progress">
-                                                            <div class="progress-bar" role="progressbar" style="width: 45%">45%</div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <button class="btn btn-sm btn-info">Detail</button>
-                                                        <button class="btn btn-sm btn-warning">Edit</button>
-                                                    </td>
-                                                </tr>
+                                                <!-- Data akan diambil dari database -->
+                                            </tbody>
                                             </tbody>
                                         </table>
                                     </div>
@@ -1079,8 +897,8 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="namaProyek">Nama Proyek</label>
-                                                    <input type="text" class="form-control" id="namaProyek" placeholder="Cari nama proyek...">
+                                                    <label for="namaProyek">Nama - Kode Proyek</label>
+                                                    <input type="text" class="form-control" id="namaProyek" placeholder="Cari nama - kode proyek...">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
@@ -1088,12 +906,7 @@
                                                     <label for="nomorKontrak">Nomor Kontrak</label>
                                                     <select class="form-control" id="nomorKontrak">
                                                         <option value="">Semua Nomor Kontrak</option>
-                                                        <option value="KTRK-001">KTRK-001</option>
-                                                        <option value="KTRK-002">KTRK-002</option>
-                                                        <option value="KTRK-003">KTRK-003</option>
-                                                        <option value="KTRK-004">KTRK-004</option>
-                                                        <option value="KTRK-005">KTRK-005</option>
-                                                        <option value="KTRK-006">KTRK-006</option>
+                                                        <!-- Data akan diambil dari database -->
                                                     </select>
                                                 </div>
                                             </div>
@@ -1156,7 +969,7 @@
                                         <table class="table table-bordered" id="filteredTable" width="100%" cellspacing="0">
                                             <thead>
                                                 <tr>
-                                                    <th>Nama Proyek</th>
+                                                    <th>Nama - Kode Proyek</th>
                                                     <th>Nomor Kontrak</th>
                                                     <th>Tanggal Kontrak</th>
                                                     <th>Status</th>
@@ -1203,57 +1016,8 @@
         
         <!-- Custom JavaScript for Monitoring -->
         <script>
-            // Sample data for filtering
-            const allProjectData = [
-                {
-                    nama: 'Pembangunan Gedung A',
-                    nomor: 'KTRK-001',
-                    tanggal: '2024-01-15',
-                    status: 'Aktif',
-                    nilai: 500000000,
-                    progress: 75
-                },
-                {
-                    nama: 'Renovasi Kantor B',
-                    nomor: 'KTRK-002',
-                    tanggal: '2024-02-20',
-                    status: 'Pending',
-                    nilai: 250000000,
-                    progress: 25
-                },
-                {
-                    nama: 'Instalasi Sistem IT',
-                    nomor: 'KTRK-003',
-                    tanggal: '2024-03-10',
-                    status: 'Aktif',
-                    nilai: 150000000,
-                    progress: 90
-                },
-                {
-                    nama: 'Pembangunan Jembatan',
-                    nomor: 'KTRK-004',
-                    tanggal: '2024-01-05',
-                    status: 'Selesai',
-                    nilai: 1000000000,
-                    progress: 100
-                },
-                {
-                    nama: 'Pembangunan Mall',
-                    nomor: 'KTRK-005',
-                    tanggal: '2024-04-01',
-                    status: 'Dibatalkan',
-                    nilai: 2500000000,
-                    progress: 10
-                },
-                {
-                    nama: 'Renovasi Hotel',
-                    nomor: 'KTRK-006',
-                    tanggal: '2024-03-25',
-                    status: 'Aktif',
-                    nilai: 750000000,
-                    progress: 45
-                }
-            ];
+            // Data akan diambil dari API backend
+            // Tidak ada data dummy - semua data berasal dari database
             
             // Function to show dashboard
             function showDashboard() {

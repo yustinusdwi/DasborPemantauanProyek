@@ -16,9 +16,11 @@ class Sph extends Model
         'uraian',
         'harga_total',
         'dokumen_sph',
+        'is_published',
     ];
 
     protected $casts = [
         'dokumen_sph' => 'array',
+        'is_published' => 'boolean',
     ];
 }
