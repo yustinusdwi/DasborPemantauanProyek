@@ -1,6 +1,6 @@
 @extends('layouts.app')
 <link rel="icon" type="image/x-icon" href="{{ asset('img/logo-imss-no-bg.png') }}" />
-@section('title', 'Dasbor Pemantauan Proyek | Kontrak')
+@section('title', 'MarkLens | Kontrak')
 @section('content')
 <div class="container-fluid">
     <ol class="breadcrumb mb-4">

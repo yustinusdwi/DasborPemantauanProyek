@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dasbor Pemantauan Proyek | Dashboard')
+@section('title', 'MarkLens | Dasbor')
 
 @section('content')
                     <div class="container-fluid">

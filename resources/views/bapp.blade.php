@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dasbor Pemantauan Proyek | BAPP' . (isset($tipe) ? ' ' . strtoupper($tipe) : ''))
+@section('title', 'MarkLens | BAPP' . (isset($tipe) ? ' ' . strtoupper($tipe) : ''))
 
 @section('content')
 <div class="container mt-4">

@@ -1,7 +1,7 @@
 @php use Illuminate\Support\Str; @endphp
 @extends('layouts.app')
 
-@section('title', 'Dasbor Pemantauan Proyek | LoI')
+@section('title', 'MarkLens | LoI')
 
 @section('content')
 <div class="container mt-4">

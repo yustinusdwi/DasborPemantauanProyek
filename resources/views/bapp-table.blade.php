@@ -1,10 +1,10 @@
 @php use Illuminate\Support\Str; @endphp
-@section('title', 'Admin | BAPP' . (isset($tipe) ? ' ' . strtoupper($tipe) : ''))
+@section('title', 'MarkLens - Admin | BAPP' . (isset($tipe) ? ' ' . strtoupper($tipe) : ''))
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Data BAPP</title>
+    <title>MarkLens - Admin | BAPP @if(isset($tipe)){{ strtoupper($tipe) }}@endif</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('img/logo-imss-no-bg.png') }}" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">

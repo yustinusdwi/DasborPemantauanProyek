@@ -1,7 +1,7 @@
 @extends('layouts.app')
 <link rel="icon" type="image/x-icon" href="{{ asset('img/logo-imss-no-bg.png') }}" />
 
-@section('title', 'Dasbor Pemantauan Proyek | SPPH')
+@section('title', 'MarkLens | SPPH')
 
 @section('content')
 <style>
