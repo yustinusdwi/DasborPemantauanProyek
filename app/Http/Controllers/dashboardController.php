@@ -85,14 +85,26 @@ class dashboardController extends Controller
      */
     private function getDashboardStats(): array
     {
-        $jumlahKontrak = Kontrak::count();
         $totalSales = Kontrak::sum('harga_total');
         $totalPenjualan = \App\Models\Bapp::where('tipe', 'eksternal')->sum('harga_total');
         $bappEksternalData = \App\Models\Bapp::where('tipe', 'eksternal')->orderBy('created_at', 'desc')->get(['nomor_bapp','no_po','tanggal_po','tanggal_terima','nama_proyek','harga_total']);
+        
+        // Hitung jumlah proyek berdasarkan checklist kontrak
+        $spphList = Spph::orderBy('created_at', 'desc')->get();
+        $kontrakList = Kontrak::orderBy('created_at', 'desc')->get();
+        $jumlahProyek = 0;
+        
+        foreach ($spphList as $spph) {
+            $kontrak = $kontrakList->firstWhere('nama_proyek', $spph->nama_proyek);
+            if ($kontrak) {
+                $jumlahProyek++;
+            }
+        }
+        
         return [
             'target_sales' => 'Rp ' . number_format($totalSales, 0, ',', '.'),
             'penjualan' => 'Rp ' . number_format($totalPenjualan, 0, ',', '.'),
-            'total_proyek' => $jumlahKontrak,
+            'total_proyek' => $jumlahProyek,
             'bapp_eksternal_data' => $bappEksternalData
         ];
     }
@@ -152,29 +164,32 @@ class dashboardController extends Controller
 
             $projectData[] = [
                 'nama' => $spph->nama_proyek ?? $spph->uraian,
+                'tanggal_spph' => $spph->tanggal ? \Carbon\Carbon::parse($spph->tanggal)->format('Y') : null,
                 'spph' => '<a href="#" class="proyek-check" data-tipe="spph" data-info="' . htmlspecialchars(json_encode([
                     'no_spph' => $spph->nomor_spph,
                     'subkontraktor' => $spph->subkontraktor,
-                    'tanggal' => $spph->tanggal,
-                    'batas_akhir' => $spph->batas_akhir_sph,
+                    'tanggal' => $spph->tanggal ? \Carbon\Carbon::parse($spph->tanggal)->format('d/m/Y') : null,
+                    'batas_akhir' => $spph->batas_akhir_sph ? \Carbon\Carbon::parse($spph->batas_akhir_sph)->format('d/m/Y') : null,
                     'uraian' => $spph->uraian,
                     'nama_proyek' => $spph->nama_proyek,
                 ]), ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($spph->nomor_spph) . '</a>',
+                'tanggal_sph' => $sph ? ($sph->tanggal ? \Carbon\Carbon::parse($sph->tanggal)->format('Y') : null) : null,
                 'sph' => $sph ? '<a href="#" class="proyek-check" data-tipe="sph" data-info="' . htmlspecialchars(json_encode([
                     'no_sph' => $sph->nomor_sph,
                     'subkontraktor' => $sph->subkontraktor,
-                    'tanggal' => $sph->tanggal,
+                    'tanggal' => $sph->tanggal ? \Carbon\Carbon::parse($sph->tanggal)->format('d/m/Y') : null,
                     'uraian' => $sph->uraian,
                     'harga_total' => $sph->harga_total,
                     'file_sph' => $sph->dokumen_sph,
                     'nama_proyek' => $sph->nama_proyek,
                 ]), ENT_QUOTES, 'UTF-8') . '"><span style="color:green;font-size:1.2em;">&#10003;</span></a>' : '-',
+                'tanggal_kontrak' => $kontrak ? ($kontrak->tanggal ? \Carbon\Carbon::parse($kontrak->tanggal)->format('Y') : null) : null,
                 'nego' => $negoChecklist,
                 'kontrak' => $kontrak ? '<a href="#" class="proyek-check" data-tipe="kontrak" data-info="' . htmlspecialchars(json_encode([
                     'no_kontrak' => $kontrak->nomor_kontrak,
                     'subkontraktor' => $kontrak->subkontraktor,
-                    'tanggal' => $kontrak->tanggal,
-                    'batas_akhir' => $kontrak->batas_akhir_kontrak,
+                    'tanggal' => $kontrak->tanggal ? \Carbon\Carbon::parse($kontrak->tanggal)->format('d/m/Y') : null,
+                    'batas_akhir' => $kontrak->batas_akhir_kontrak ? \Carbon\Carbon::parse($kontrak->batas_akhir_kontrak)->format('d/m/Y') : null,
                     'uraian' => $kontrak->uraian,
                     'harga_total' => $kontrak->harga_total,
                     'file_kontrak' => $kontrak->dokumen_kontrak,
@@ -255,11 +270,12 @@ class dashboardController extends Controller
                 return null;
             };
             
-            return [
+        return [
                 'no_kontrak' => $kontrak->nomor_kontrak,
                 'subkontraktor' => $kontrak->subkontraktor,
-                'tanggal' => $kontrak->tanggal,
-                'batas_akhir' => $kontrak->batas_akhir_kontrak,
+                'tanggal' => $kontrak->tanggal ? \Carbon\Carbon::parse($kontrak->tanggal)->format('d/m/Y') : null,
+                'tanggal_year' => $kontrak->tanggal ? \Carbon\Carbon::parse($kontrak->tanggal)->format('Y') : null,
+                'batas_akhir' => $kontrak->batas_akhir_kontrak ? \Carbon\Carbon::parse($kontrak->batas_akhir_kontrak)->format('d/m/Y') : null,
                 'nama_proyek' => $kontrak->nama_proyek,
                 'uraian' => $kontrak->uraian,
                 'nilai_harga_total' => (int) $kontrak->harga_total,

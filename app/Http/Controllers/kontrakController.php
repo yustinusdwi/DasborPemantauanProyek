@@ -36,7 +36,7 @@ class kontrakController extends Controller
                 'type' => gettype($kontrak->dokumen_kontrak)
             ]);
             
-            $file_kontrak = $normalizeFile($kontrak->dokumen_kontrak);
+                    $file_kontrak = $normalizeFile($kontrak->dokumen_kontrak);
             
             // Debug: Log normalized file
             \Log::info('Normalized file_kontrak for kontrak ' . $kontrak->id . ':', [

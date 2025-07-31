@@ -17,9 +17,36 @@
         <div class="card-body">
             <!-- Search Bar -->
             <div class="mb-4">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control" placeholder="Cari berdasarkan nomor LoI, nama - kode proyek, nomor kontrak, atau informasi lainnya...">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" id="searchInput" class="form-control" placeholder="Cari berdasarkan nomor LoI, nama - kode proyek, nomor kontrak, atau informasi lainnya...">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                            <select id="filterTahunLoi" class="form-control">
+                                <option value="">Semua Tahun</option>
+                                @php
+                                    $tahunList = [];
+                                    foreach($lois as $loi) {
+                                        if($loi->tanggal) {
+                                            $tahun = \Carbon\Carbon::parse($loi->tanggal)->format('Y');
+                                            if(!in_array($tahun, $tahunList)) {
+                                                $tahunList[] = $tahun;
+                                            }
+                                        }
+                                    }
+                                    rsort($tahunList);
+                                @endphp
+                                @foreach($tahunList as $tahun)
+                                    <option value="{{ $tahun }}">{{ $tahun }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -197,142 +224,139 @@
 </style>
 
 @push('scripts')
+<!-- DataTables CSS dan JS -->
+<link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet" crossorigin="anonymous" />
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js" crossorigin="anonymous"></script>
+
 <script>
-    $(document).ready(function() {
-        let currentSort = { column: null, direction: 'asc' };
-        let originalData = [];
-        let filteredData = [];
-        
-        // Store original data
-        $('#loiTable tbody tr').each(function() {
-            originalData.push($(this).clone());
+$(function() {
+    // Inisialisasi DataTable dengan fitur searching
+    if ($.fn.DataTable) {
+        $('#loiTable').DataTable({
+            "language": {
+                "decimal":        "",
+                "emptyTable":    "Tidak ada data yang tersedia",
+                "info":          "",
+                "infoEmpty":     "",
+                "infoFiltered":  "",
+                "infoPostFix":   "",
+                "thousands":     ",",
+                "lengthMenu":    "Tampilkan _MENU_ entri",
+                "loadingRecords": "Memuat...",
+                "processing":    "Memproses...",
+                "search":        "Cari:",
+                "zeroRecords":   "Tidak ditemukan data yang sesuai",
+                "paginate": {
+                    "first":      "Pertama",
+                    "last":       "Terakhir",
+                    "next":       "Selanjutnya",
+                    "previous":   "Sebelumnya"
+                },
+                "aria": {
+                    "sortAscending":  ": aktifkan untuk mengurutkan kolom naik",
+                    "sortDescending": ": aktifkan untuk mengurutkan kolom turun"
+                }
+            },
+            "pageLength": 10,
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+            "order": [[0, "asc"]],
+            "responsive": true,
+            "searching": true,
+            "info": false,
+            "paging": true,
+            "dom": 'rtip'
         });
-        filteredData = [...originalData];
+    }
+    
+    // Custom search functionality untuk search box di atas tabel
+    $('#searchInput').on('keyup', function() {
+        var searchValue = $(this).val().toLowerCase();
+        var table = $('#loiTable').DataTable();
         
-        // Search functionality
-        $('#searchInput').on('input', function() {
-            const searchTerm = $(this).val().toLowerCase();
-            filterAndDisplayData(searchTerm);
-        });
-        
-        // Sorting functionality
-        $('.sortable').on('click', function() {
-            const column = $(this).data('sort');
-            const $this = $(this);
-            
-            // Update sort direction
-            if (currentSort.column === column) {
-                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-                currentSort.column = column;
-                currentSort.direction = 'asc';
-            }
-            
-            // Update sort icons
-            $('.sortable').removeClass('sort-asc sort-desc');
-            $('.sortable .sort-icon').removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
-            $this.addClass(currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc');
-            $this.find('.sort-icon').removeClass('fa-sort').addClass(currentSort.direction === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
-            
-            // Sort and display data
-            sortAndDisplayData();
-        });
-        
-        // Preview PDF functionality
-        $('.preview-loi-btn').on('click', function(e) {
-            e.preventDefault();
-            var pdfUrl = $(this).data('pdf-url');
-            $('#pdfPreviewFrame').attr('src', pdfUrl);
-            $('#pdfPreviewModal').modal('show');
-        });
-        
-        // Clear iframe when modal is hidden
-        $('#pdfPreviewModal').on('hidden.bs.modal', function () {
-            $('#pdfPreviewFrame').attr('src', '');
-        });
-        
-        function filterAndDisplayData(searchTerm) {
-            filteredData = originalData.filter(function(row) {
-                const text = $(row).text().toLowerCase();
-                return text.includes(searchTerm);
+        if (table) {
+            table.search(searchValue).draw();
+        } else {
+            // Fallback untuk manual search jika DataTable tidak tersedia
+            var rows = $('#loiTable tbody tr');
+            rows.each(function() {
+                var rowText = $(this).text().toLowerCase();
+                if (rowText.indexOf(searchValue) > -1) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
             });
-            
-            sortAndDisplayData();
         }
-        
-        function sortAndDisplayData() {
-            if (currentSort.column && filteredData.length > 0) {
-                filteredData.sort(function(a, b) {
-                    let aVal, bVal;
-                    
-                    if (currentSort.column === 'no') {
-                        aVal = parseInt($(a).find('td:first').text());
-                        bVal = parseInt($(b).find('td:first').text());
-                    } else {
-                        const aCell = $(a).find(`td:nth-child(${getColumnIndex(currentSort.column)})`);
-                        const bCell = $(b).find(`td:nth-child(${getColumnIndex(currentSort.column)})`);
-                        
-                        if (currentSort.column === 'tanggal' || currentSort.column === 'batas_akhir_loi') {
-                            aVal = aCell.data('sort') || '';
-                            bVal = bCell.data('sort') || '';
-                        } else if (currentSort.column === 'harga_total') {
-                            aVal = parseFloat(aCell.data('sort') || 0);
-                            bVal = parseFloat(bCell.data('sort') || 0);
-                        } else {
-                            aVal = aCell.text().toLowerCase();
-                            bVal = bCell.text().toLowerCase();
-                        }
-                    }
-                    
-                    if (currentSort.direction === 'asc') {
-                        return aVal > bVal ? 1 : -1;
-                    } else {
-                        return aVal < bVal ? 1 : -1;
-                    }
-                });
-            }
-            
-            displayData();
-        }
-        
-        function getColumnIndex(column) {
-            const columnMap = {
-                'no': 1,
-                'nomor_loi': 2,
-                'tanggal': 3,
-                'batas_akhir_loi': 4,
-                'no_po': 5,
-                'nomor_kontrak': 6,
-                'pelanggan': 7,
-                'nama_proyek': 8,
-                'harga_total': 9
-            };
-            return columnMap[column] || 1;
-        }
-        
-        function displayData() {
-            const $tbody = $('#loiTable tbody');
-            $tbody.empty();
-            
-            if (filteredData.length === 0) {
-                $tbody.append('<tr><td colspan="10" class="text-center">Tidak ada data yang ditemukan.</td></tr>');
+    });
+    
+    // Clear search saat input dikosongkan
+    $('#searchInput').on('input', function() {
+        if ($(this).val() === '') {
+            var table = $('#loiTable').DataTable();
+            if (table) {
+                table.search('').draw();
             } else {
-                filteredData.forEach(function(row, index) {
-                    const $newRow = $(row);
-                    $newRow.find('td:first').text(index + 1);
-                    $tbody.append($newRow);
-                });
-                
-                // Re-attach preview button events
-                $('.preview-loi-btn').off('click').on('click', function(e) {
-                    e.preventDefault();
-                    var pdfUrl = $(this).data('pdf-url');
-                    $('#pdfPreviewFrame').attr('src', pdfUrl);
-                    $('#pdfPreviewModal').modal('show');
-                });
+                $('#loiTable tbody tr').show();
             }
         }
     });
+    
+    // Filter tahun functionality
+    $('#filterTahunLoi').on('change', function() {
+        var selectedYear = $(this).val();
+        var table = $('#loiTable').DataTable();
+        
+        if (table) {
+            if (selectedYear === '') {
+                // Tampilkan semua data
+                table.draw();
+            } else {
+                // Filter berdasarkan tahun
+                $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                    var tanggal = data[2]; // Kolom tanggal (index 2)
+                    if (tanggal && tanggal !== '-') {
+                        var tahun = tanggal.split('/')[2]; // Ambil tahun dari format dd/mm/yyyy
+                        return tahun === selectedYear;
+                    }
+                    return false;
+                });
+                table.draw();
+                $.fn.dataTable.ext.search.pop(); // Hapus filter setelah selesai
+            }
+        } else {
+            // Fallback untuk manual filter jika DataTable tidak tersedia
+            var rows = $('#loiTable tbody tr');
+            rows.each(function() {
+                var tanggalCell = $(this).find('td:eq(2)').text(); // Kolom tanggal
+                if (selectedYear === '' || (tanggalCell && tanggalCell !== '-' && tanggalCell.split('/')[2] === selectedYear)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+    });
+    
+    // Handler tombol pratinjau PDF
+    $(document).on('click', '.preview-loi-btn', function(e) {
+        e.preventDefault();
+        var pdfUrl = $(this).data('pdf-url');
+        $('#pdfPreviewFrame').attr('src', ''); // Clear dulu
+        setTimeout(function() {
+            $('#pdfPreviewFrame').attr('src', pdfUrl);
+            var pdfModal = new bootstrap.Modal(document.getElementById('pdfPreviewModal'));
+            pdfModal.show();
+        }, 100);
+    });
+    
+    // Bersihkan src saat modal ditutup
+    $('#pdfPreviewModal').on('hidden.bs.modal', function () {
+        setTimeout(function() {
+            $('#pdfPreviewFrame').attr('src', '');
+        }, 200);
+    });
+});
 </script>
 @endpush
 @endsection 

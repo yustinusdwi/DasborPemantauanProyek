@@ -15,12 +15,38 @@
                     Data Seluruh Negosiasi Saat Ini
                 </div>
                 <div class="card-body">
-                    <div class="mb-3" style="max-width:350px;">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                </div>
+                                <input type="text" id="searchNego" class="form-control" placeholder="Cari Negosiasi, Deskripsi, Berkas, dll...">
                             </div>
-                            <input type="text" id="searchNego" class="form-control" placeholder="Cari Negosiasi, Deskripsi, Berkas, dll...">
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                </div>
+                                <select id="filterTahunNego" class="form-control">
+                                    <option value="">Semua Tahun</option>
+                                    @php
+                                        $tahunList = [];
+                                        foreach($negoData as $nego) {
+                                            // Ambil tahun dari created_at atau tanggal terbaru
+                                            $tahun = \Carbon\Carbon::now()->format('Y');
+                                            if(!in_array($tahun, $tahunList)) {
+                                                $tahunList[] = $tahun;
+                                            }
+                                        }
+                                        rsort($tahunList);
+                                    @endphp
+                                    @foreach($tahunList as $tahun)
+                                        <option value="{{ $tahun }}">{{ $tahun }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -65,7 +91,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="pdfPreviewModalLabel">Pratinjau Dokumen PDF</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <iframe id="pdfPreviewFrame" src="" width="100%" height="600px" style="border:none;"></iframe>
@@ -79,7 +105,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Detail Negosiasi Proyek: <span id="modalNamaProyek"></span></h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div id="detailNegoTableContainer">
@@ -87,7 +113,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
       </div>
     </div>
   </div>
@@ -98,84 +124,121 @@
 @endsection
 
 @push('scripts')
+<!-- DataTables CSS dan JS -->
+<link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet" crossorigin="anonymous" />
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js" crossorigin="anonymous"></script>
+
 <script>
-$(document).ready(function() {
-    var table = $('#negoTable').DataTable({
-        "language": {
-            "decimal":        "",
-            "emptyTable":    "Tidak ada data yang tersedia",
-            "info":          "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-            "infoEmpty":     "Menampilkan 0 sampai 0 dari 0 entri",
-            "infoFiltered":  "(difilter dari _MAX_ total entri)",
-            "infoPostFix":   "",
-            "thousands":     ",",
-            "lengthMenu":    "Tampilkan _MENU_ entri",
-            "loadingRecords": "Memuat...",
-            "processing":    "Memproses...",
-            "search":        "Cari:",
-            "zeroRecords":   "Tidak ditemukan data yang sesuai",
-            "paginate": {
-                "first":      "Pertama",
-                "last":       "Terakhir",
-                "next":       "Selanjutnya",
-                "previous":   "Sebelumnya"
+$(function() {
+    // Inisialisasi DataTable dengan fitur searching
+    if ($.fn.DataTable) {
+        $('#negoTable').DataTable({
+            "language": {
+                "decimal":        "",
+                "emptyTable":    "Tidak ada data yang tersedia",
+                "info":          "",
+                "infoEmpty":     "",
+                "infoFiltered":  "",
+                "infoPostFix":   "",
+                "thousands":     ",",
+                "lengthMenu":    "Tampilkan _MENU_ entri",
+                "loadingRecords": "Memuat...",
+                "processing":    "Memproses...",
+                "search":        "Cari:",
+                "zeroRecords":   "Tidak ditemukan data yang sesuai",
+                "paginate": {
+                    "first":      "Pertama",
+                    "last":       "Terakhir",
+                    "next":       "Selanjutnya",
+                    "previous":   "Sebelumnya"
+                },
+                "aria": {
+                    "sortAscending":  ": aktifkan untuk mengurutkan kolom naik",
+                    "sortDescending": ": aktifkan untuk mengurutkan kolom turun"
+                }
             },
-            "aria": {
-                "sortAscending":  ": aktifkan untuk mengurutkan kolom naik",
-                "sortDescending": ": aktifkan untuk mengurutkan kolom turun"
-            }
-        },
-        "pageLength": 10,
-        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
-        "order": [[0, "asc"]],
-        "responsive": true,
-        dom: 'rtip',
-        "columnDefs": [
-            { "orderable": false, "targets": [4,5] }
-        ]
-    });
+            "pageLength": 10,
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+            "order": [[0, "asc"]],
+            "responsive": true,
+            "searching": true,
+            "info": false,
+            "paging": true,
+            "dom": 'rtip'
+        });
+    }
+    
+    // Custom search functionality untuk search box di atas tabel
     $('#searchNego').on('keyup', function() {
-        table.search(this.value).draw();
-    });
-    // Preview PDF
-    $(document).on('click', '.preview-pdf-btn', function(e) {
-        e.preventDefault();
-        var pdfUrl = $(this).data('pdf-url');
+        var searchValue = $(this).val().toLowerCase();
+        var table = $('#negoTable').DataTable();
         
-        // Clear iframe terlebih dahulu
-        $('#pdfPreviewFrame').attr('src', '');
-        
-        // Set timeout untuk memastikan iframe sudah clear
-        setTimeout(function() {
-            $('#pdfPreviewFrame').attr('src', pdfUrl);
-            $('#pdfPreviewModal').modal('show');
-        }, 100);
-    });
-    
-    // Handle modal close dengan benar
-    $('#pdfPreviewModal').on('hidden.bs.modal', function () {
-        // Clear iframe dengan timeout untuk menghindari error
-        setTimeout(function() {
-            $('#pdfPreviewFrame').attr('src', '');
-        }, 200);
-    });
-    
-    // Handle modal show untuk memastikan iframe siap
-    $('#pdfPreviewModal').on('shown.bs.modal', function () {
-        // Pastikan iframe sudah ter-set dengan benar
-        var iframe = document.getElementById('pdfPreviewFrame');
-        if (iframe) {
-            iframe.style.height = '600px';
+        if (table) {
+            table.search(searchValue).draw();
+        } else {
+            // Fallback untuk manual search jika DataTable tidak tersedia
+            var rows = $('#negoTable tbody tr');
+            rows.each(function() {
+                var rowText = $(this).text().toLowerCase();
+                if (rowText.indexOf(searchValue) > -1) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
         }
     });
+    
+    // Clear search saat input dikosongkan
+    $('#searchNego').on('input', function() {
+        if ($(this).val() === '') {
+            var table = $('#negoTable').DataTable();
+            if (table) {
+                table.search('').draw();
+            } else {
+                $('#negoTable tbody tr').show();
+            }
+        }
+    });
+    
+    // Filter tahun functionality
+    $('#filterTahunNego').on('change', function() {
+        var selectedYear = $(this).val();
+        var table = $('#negoTable').DataTable();
+        
+        if (table) {
+            if (selectedYear === '') {
+                // Tampilkan semua data
+                table.draw();
+            } else {
+                // Filter berdasarkan tahun (karena nego tidak punya kolom tanggal, gunakan tahun saat ini)
+                $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                    // Untuk nego, kita akan menampilkan semua data karena tidak ada kolom tanggal
+                    return true;
+                });
+                table.draw();
+                $.fn.dataTable.ext.search.pop(); // Hapus filter setelah selesai
+            }
+        } else {
+            // Fallback untuk manual filter jika DataTable tidak tersedia
+            var rows = $('#negoTable tbody tr');
+            rows.each(function() {
+                // Untuk nego, tampilkan semua data karena tidak ada kolom tanggal
+                $(this).show();
+            });
+        }
+    });
+
+    // Handler tombol detail nego
     $(document).on('click', '.lihat-detail-nego', function(e) {
         e.preventDefault();
         var negoId = $(this).data('nego-id');
         var tipe = $(this).data('tipe');
-        // Ambil nama - kode proyek dari baris tabel
-        var namaProyek = $(this).closest('tr').find('td').eq(2).text();
+        var namaProyek = $(this).closest('tr').find('td:eq(2)').text();
         $('#modalNamaProyek').text(namaProyek);
         $('#detailNegoTableContainer').html('<div class="text-center">Memuat data...</div>');
+        
         function formatRupiah(angka) {
             if (!angka || isNaN(angka)) return '-';
             var number_string = angka.toString().replace(/[^\d]/g, ''),
@@ -187,37 +250,82 @@ $(document).ready(function() {
             }
             return 'Rp. ' + rupiah;
         }
-        $.get('/admin/nego/detail-by-project', { nego_id: negoId }, function(res) {
-            var data = res.data.filter(function(item) { return item.tipe === tipe; });
-            if(data.length > 0) {
-                var html = '<div class="table-responsive"><table class="table table-bordered">';
-                html += '<thead><tr><th>No</th><th>Nomor Negosiasi</th><th>Pelanggan</th><th>Tanggal</th><th>Harga Total</th><th>Berkas Hasil Nego</th></tr></thead><tbody>';
-                data.forEach(function(item, idx) {
-                    html += '<tr>';
-                    html += '<td>' + (idx + 1) + '</td>';
-                    html += '<td>' + (item.nomor_nego ?? '-') + '</td>';
-                    html += '<td>' + (item.subkontraktor ?? '-') + '</td>';
-                    html += '<td>' + (item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID') : '-') + '</td>';
-                    html += '<td>' + (item.harga_total ? formatRupiah(item.harga_total) : '-') + '</td>';
-                    if(item.dokumen_nego && item.dokumen_nego.path) {
-                        var fileUrl = "{{ asset('storage') }}/" + item.dokumen_nego.path;
-                        html += '<td>' +
-                            '<button type="button" class="btn btn-sm btn-primary preview-pdf-btn" data-pdf-url="' + fileUrl + '" data-toggle="modal" data-target="#pdfPreviewModal">Pratinjau</button>' +
-                            ' <span>' + (item.dokumen_nego.name ?? '') + '</span>' +
-                            '</td>';
-                    } else {
-                        html += '<td><span class="badge bg-secondary">Tidak Ada</span></td>';
-                    }
-                    html += '</tr>';
-                });
-                html += '</tbody></table></div>';
-                $('#detailNegoTableContainer').html(html);
-                $('#detailNegoModal').modal('show');
-            } else {
-                $('#detailNegoTableContainer').html('<div class="alert alert-warning">Tidak ada data detail untuk tipe ini.</div>');
-                $('#detailNegoModal').modal('show');
-            }
-        });
+        
+        $.get('/nego/detail-by-project', { nego_id: negoId })
+            .done(function(res) {
+                var data = res.data.filter(function(item) { return item.tipe === tipe; });
+                if(data.length > 0) {
+                    var html = '<div class="table-responsive"><table class="table table-bordered">';
+                    html += '<thead><tr><th>No</th><th>Nomor Negosiasi</th><th>Pelanggan</th><th>Tanggal</th><th>Harga Total</th><th>Berkas Hasil Nego</th></tr></thead><tbody>';
+                    data.forEach(function(item, idx) {
+                        html += '<tr>';
+                        html += '<td>' + (idx + 1) + '</td>';
+                        html += '<td>' + (item.nomor_nego ?? '-') + '</td>';
+                        html += '<td>' + (item.subkontraktor ?? '-') + '</td>';
+                        html += '<td>' + (item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID') : '-') + '</td>';
+                        html += '<td>' + (item.harga_total ? formatRupiah(item.harga_total) : '-') + '</td>';
+                        if(item.dokumen_nego && item.dokumen_nego.path) {
+                            var fileUrl = "{{ asset('storage') }}/" + item.dokumen_nego.path;
+                            html += '<td>' +
+                                '<button type="button" class="btn btn-sm btn-primary preview-pdf-btn" data-pdf-url="' + fileUrl + '">Pratinjau</button>' +
+                                ' <span>' + (item.dokumen_nego.name ?? '') + '</span>' +
+                                '</td>';
+                        } else {
+                            html += '<td><span class="badge bg-secondary">Tidak Ada</span></td>';
+                        }
+                        html += '</tr>';
+                    });
+                    html += '</tbody></table></div>';
+                    $('#detailNegoTableContainer').html(html);
+                    var detailModal = new bootstrap.Modal(document.getElementById('detailNegoModal'));
+                    detailModal.show();
+                } else {
+                    $('#detailNegoTableContainer').html('<div class="alert alert-warning">Tidak ada data detail untuk tipe ini.</div>');
+                    var detailModal = new bootstrap.Modal(document.getElementById('detailNegoModal'));
+                    detailModal.show();
+                }
+            })
+            .fail(function() {
+                $('#detailNegoTableContainer').html('<div class="alert alert-danger">Terjadi kesalahan saat memuat data.</div>');
+                var detailModal = new bootstrap.Modal(document.getElementById('detailNegoModal'));
+                detailModal.show();
+            });
+    });
+
+    // Handler tombol pratinjau PDF (baik di tabel utama maupun di modal detail)
+    $(document).on('click', '.preview-pdf-btn', function(e) {
+        e.preventDefault();
+        var pdfUrl = $(this).data('pdf-url');
+        if (!pdfUrl) {
+            alert('URL PDF tidak valid');
+            return;
+        }
+        var iframe = document.getElementById('pdfPreviewFrame');
+        if (iframe) {
+            iframe.src = '';
+            setTimeout(function() {
+                iframe.src = pdfUrl;
+                var pdfModal = new bootstrap.Modal(document.getElementById('pdfPreviewModal'));
+                pdfModal.show();
+            }, 100);
+        }
+    });
+
+    // Handle modal close untuk PDF
+    $('#pdfPreviewModal').on('hidden.bs.modal', function () {
+        var iframe = document.getElementById('pdfPreviewFrame');
+        if (iframe) {
+            setTimeout(function() {
+                iframe.src = '';
+            }, 200);
+        }
+    });
+    
+    $('#pdfPreviewModal').on('shown.bs.modal', function () {
+        var iframe = document.getElementById('pdfPreviewFrame');
+        if (iframe) {
+            iframe.style.height = '600px';
+        }
     });
 });
 </script>

@@ -26,12 +26,39 @@
                     Data Seluruh SPH Saat Ini
                 </div>
                 <div class="card-body">
-                    <div class="mb-3" style="max-width:350px;">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                </div>
+                                <input type="text" id="searchSph" class="form-control" placeholder="Cari SPH, Nama Pekerjaan, Berkas, dll...">
                             </div>
-                            <input type="text" id="searchSph" class="form-control" placeholder="Cari SPH, Nama Pekerjaan, Berkas, dll...">
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                </div>
+                                <select id="filterTahunSph" class="form-control">
+                                    <option value="">Semua Tahun</option>
+                                    @php
+                                        $tahunList = [];
+                                        foreach($sphData as $sph) {
+                                            if($sph['tanggal']) {
+                                                $tahun = \Carbon\Carbon::parse($sph['tanggal'])->format('Y');
+                                                if(!in_array($tahun, $tahunList)) {
+                                                    $tahunList[] = $tahun;
+                                                }
+                                            }
+                                        }
+                                        rsort($tahunList);
+                                    @endphp
+                                    @foreach($tahunList as $tahun)
+                                        <option value="{{ $tahun }}">{{ $tahun }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="table-responsive" style="max-height:65vh;overflow-y:auto;">
@@ -60,9 +87,9 @@
                                         @if($sph['file_sph'] && isset($sph['file_sph']['path']))
                                             <div class="mb-2">
                                                 <small class="text-muted d-block">{{ $sph['file_sph']['name'] }}</small>
-                                                <a href="#" class="btn btn-sm btn-primary preview-pdf-btn" data-toggle="modal" data-target="#pdfPreviewModal" data-pdf-url="{{ asset('storage/' . $sph['file_sph']['path']) }}">
+                                                <button type="button" class="btn btn-sm btn-primary preview-pdf-btn" data-pdf-url="{{ asset('storage/' . $sph['file_sph']['path']) }}">
                                                     <i class="fa-solid fa-eye"></i> Pratinjau
-                                                </a>
+                                                </button>
                                             </div>
                                         @else
                                             -
@@ -85,7 +112,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="pdfPreviewModalLabel">Pratinjau Dokumen PDF</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <iframe id="pdfPreviewFrame" src="" width="100%" height="600px" style="border:none;"></iframe>
@@ -98,73 +125,137 @@
 </div>
 
 @push('scripts')
+<!-- DataTables CSS dan JS -->
+<link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet" crossorigin="anonymous" />
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js" crossorigin="anonymous"></script>
+
 <script>
-$(document).ready(function() {
-    var table = $('#sphTable').DataTable({
-        "language": {
-            "decimal":        "",
-            "emptyTable":    "Tidak ada data yang tersedia",
-            "info":          "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-            "infoEmpty":     "Menampilkan 0 sampai 0 dari 0 entri",
-            "infoFiltered":  "(difilter dari _MAX_ total entri)",
-            "infoPostFix":   "",
-            "thousands":     ",",
-            "lengthMenu":    "Tampilkan _MENU_ entri",
-            "loadingRecords": "Memuat...",
-            "processing":    "Memproses...",
-            "search":        "Cari:",
-            "zeroRecords":   "Tidak ditemukan data yang sesuai",
-            "paginate": {
-                "first":      "Pertama",
-                "last":       "Terakhir",
-                "next":       "Selanjutnya",
-                "previous":   "Sebelumnya"
+$(function() {
+    // Inisialisasi DataTable dengan fitur searching
+    if ($.fn.DataTable) {
+        $('#sphTable').DataTable({
+            "language": {
+                "decimal":        "",
+                "emptyTable":    "Tidak ada data yang tersedia",
+                "info":          "",
+                "infoEmpty":     "",
+                "infoFiltered":  "",
+                "infoPostFix":   "",
+                "thousands":     ",",
+                "lengthMenu":    "Tampilkan _MENU_ entri",
+                "loadingRecords": "Memuat...",
+                "processing":    "Memproses...",
+                "search":        "Cari:",
+                "zeroRecords":   "Tidak ditemukan data yang sesuai",
+                "paginate": {
+                    "first":      "Pertama",
+                    "last":       "Terakhir",
+                    "next":       "Selanjutnya",
+                    "previous":   "Sebelumnya"
+                },
+                "aria": {
+                    "sortAscending":  ": aktifkan untuk mengurutkan kolom naik",
+                    "sortDescending": ": aktifkan untuk mengurutkan kolom turun"
+                }
             },
-            "aria": {
-                "sortAscending":  ": aktifkan untuk mengurutkan kolom naik",
-                "sortDescending": ": aktifkan untuk mengurutkan kolom turun"
-            }
-        },
-        "pageLength": 10,
-        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
-        "order": [[0, "asc"]],
-        "responsive": true,
-        dom: 'rtip'
-    });
+            "pageLength": 10,
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+            "order": [[0, "asc"]],
+            "responsive": true,
+            "searching": true,
+            "info": false,
+            "paging": true,
+            "dom": 'rtip'
+        });
+    }
+    
+    // Custom search functionality untuk search box di atas tabel
     $('#searchSph').on('keyup', function() {
-        table.search(this.value).draw();
+        var searchValue = $(this).val().toLowerCase();
+        var table = $('#sphTable').DataTable();
+        
+        if (table) {
+            table.search(searchValue).draw();
+        } else {
+            // Fallback untuk manual search jika DataTable tidak tersedia
+            var rows = $('#sphTable tbody tr');
+            rows.each(function() {
+                var rowText = $(this).text().toLowerCase();
+                if (rowText.indexOf(searchValue) > -1) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
     });
     
-    // Preview PDF - Perbaikan untuk menghindari error message channel
+    // Filter tahun functionality
+    $('#filterTahunSph').on('change', function() {
+        var selectedYear = $(this).val();
+        var table = $('#sphTable').DataTable();
+        
+        if (table) {
+            if (selectedYear === '') {
+                // Tampilkan semua data
+                table.draw();
+            } else {
+                // Filter berdasarkan tahun
+                $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                    var tanggal = data[2]; // Kolom tanggal (index 2)
+                    if (tanggal && tanggal !== '-') {
+                        var tahun = tanggal.split('/')[2]; // Ambil tahun dari format dd/mm/yyyy
+                        return tahun === selectedYear;
+                    }
+                    return false;
+                });
+                table.draw();
+                $.fn.dataTable.ext.search.pop(); // Hapus filter setelah selesai
+            }
+        } else {
+            // Fallback untuk manual filter jika DataTable tidak tersedia
+            var rows = $('#sphTable tbody tr');
+            rows.each(function() {
+                var tanggalCell = $(this).find('td:eq(2)').text(); // Kolom tanggal
+                if (selectedYear === '' || (tanggalCell && tanggalCell !== '-' && tanggalCell.split('/')[2] === selectedYear)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+    });
+    
+    // Clear search saat input dikosongkan
+    $('#searchSph').on('input', function() {
+        if ($(this).val() === '') {
+            var table = $('#sphTable').DataTable();
+            if (table) {
+                table.search('').draw();
+            } else {
+                $('#sphTable tbody tr').show();
+            }
+        }
+    });
+    
+    // Handler tombol pratinjau PDF
     $(document).on('click', '.preview-pdf-btn', function(e) {
         e.preventDefault();
         var pdfUrl = $(this).data('pdf-url');
-        
-        // Clear iframe terlebih dahulu
-        $('#pdfPreviewFrame').attr('src', '');
-        
-        // Set timeout untuk memastikan iframe sudah clear
+        $('#pdfPreviewFrame').attr('src', ''); // Clear dulu
         setTimeout(function() {
             $('#pdfPreviewFrame').attr('src', pdfUrl);
-            $('#pdfPreviewModal').modal('show');
+            var pdfModal = new bootstrap.Modal(document.getElementById('pdfPreviewModal'));
+            pdfModal.show();
         }, 100);
     });
     
-    // Handle modal close dengan benar
+    // Bersihkan src saat modal ditutup
     $('#pdfPreviewModal').on('hidden.bs.modal', function () {
-        // Clear iframe dengan timeout untuk menghindari error
         setTimeout(function() {
             $('#pdfPreviewFrame').attr('src', '');
         }, 200);
-    });
-    
-    // Handle modal show untuk memastikan iframe siap
-    $('#pdfPreviewModal').on('shown.bs.modal', function () {
-        // Pastikan iframe sudah ter-set dengan benar
-        var iframe = document.getElementById('pdfPreviewFrame');
-        if (iframe) {
-            iframe.style.height = '600px';
-        }
     });
 });
 </script>

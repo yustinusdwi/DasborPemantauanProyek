@@ -26,12 +26,39 @@
                     Data Seluruh SPPH Saat Ini
                 </div>
                 <div class="card-body">
-                    <div class="mb-3" style="max-width:350px;">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                </div>
+                                <input type="text" id="searchSpph" class="form-control" placeholder="Cari SPPH, Nama Pekerjaan, Berkas, dll...">
                             </div>
-                            <input type="text" id="searchSpph" class="form-control" placeholder="Cari SPPH, Nama Pekerjaan, Berkas, dll...">
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                </div>
+                                <select id="filterTahunSpph" class="form-control">
+                                    <option value="">Semua Tahun</option>
+                                    @php
+                                        $tahunList = [];
+                                        foreach($spphData as $spph) {
+                                            if($spph['tanggal']) {
+                                                $tahun = \Carbon\Carbon::parse($spph['tanggal'])->format('Y');
+                                                if(!in_array($tahun, $tahunList)) {
+                                                    $tahunList[] = $tahun;
+                                                }
+                                            }
+                                        }
+                                        rsort($tahunList);
+                                    @endphp
+                                    @foreach($tahunList as $tahun)
+                                        <option value="{{ $tahun }}">{{ $tahun }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -135,9 +162,9 @@ $(document).ready(function() {
         "language": {
             "decimal":        "",
             "emptyTable":    "Tidak ada data yang tersedia",
-            "info":          "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-            "infoEmpty":     "Menampilkan 0 sampai 0 dari 0 entri",
-            "infoFiltered":  "(difilter dari _MAX_ total entri)",
+            "info":          "",
+            "infoEmpty":     "",
+            "infoFiltered":  "",
             "infoPostFix":   "",
             "thousands":     ",",
             "lengthMenu":    "Tampilkan _MENU_ entri",
@@ -160,10 +187,35 @@ $(document).ready(function() {
         "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
         "order": [[0, "asc"]],
         "responsive": true,
+        "searching": true,
+        "info": false,
+        "paging": true,
         dom: 'rtip'
     });
     $('#searchSpph').on('keyup', function() {
         table.search(this.value).draw();
+    });
+    
+    // Filter tahun functionality
+    $('#filterTahunSpph').on('change', function() {
+        var selectedYear = $(this).val();
+        
+        if (selectedYear === '') {
+            // Tampilkan semua data
+            table.draw();
+        } else {
+            // Filter berdasarkan tahun
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                var tanggal = data[2]; // Kolom tanggal (index 2)
+                if (tanggal && tanggal !== '-') {
+                    var tahun = tanggal.split('/')[2]; // Ambil tahun dari format dd/mm/yyyy
+                    return tahun === selectedYear;
+                }
+                return false;
+            });
+            table.draw();
+            $.fn.dataTable.ext.search.pop(); // Hapus filter setelah selesai
+        }
     });
     
     // Preview PDF - Perbaikan untuk menghindari error message channel
@@ -177,7 +229,8 @@ $(document).ready(function() {
         // Set timeout untuk memastikan iframe sudah clear
         setTimeout(function() {
             $('#pdfPreviewFrame').attr('src', pdfUrl);
-            $('#pdfPreviewModal').modal('show');
+            var pdfModal = new bootstrap.Modal(document.getElementById('pdfPreviewModal'));
+            pdfModal.show();
         }, 100);
     });
     

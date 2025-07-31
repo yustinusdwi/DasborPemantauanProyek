@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('sphs', function (Blueprint $table) {
             if (!Schema::hasColumn('sphs', 'is_published')) {
-                $table->boolean('is_published')->default(false)->after('dokumen_lain');
+            $table->boolean('is_published')->default(false)->after('dokumen_lain');
             }
         });
     }
@@ -19,7 +19,7 @@ return new class extends Migration
     {
         Schema::table('sphs', function (Blueprint $table) {
             if (Schema::hasColumn('sphs', 'is_published')) {
-                $table->dropColumn('is_published');
+            $table->dropColumn('is_published');
             }
         });
     }

@@ -16,16 +16,14 @@
             justify-content: space-between;
             align-items: center;
         }
-        .logo-imss {
-            height:36px;width:auto;margin-right:14px;
-        }
+
     </style>
 </head>
 <body class="bg-light">
     <div class="header-bar mb-4">
         <div class="d-flex align-items-center">
-            <img src="/img/logo_imss_hd.jpg" alt="Logo IMSS" class="logo-imss">
-            <span class="fw-bold fs-5">Administrator</span>
+            <img src="{{ asset('img/imssMARKLENS-logo.png') }}" alt="Logo IMSS" style="height:80px; width:auto; margin-right:12px; margin-top:0;">
+            <span class="fw-bold fs-6">Administrator</span>
         </div>
         <a href="{{ route('admin') }}" class="btn btn-outline-secondary">Kembali ke Admin</a>
     </div>
@@ -377,23 +375,23 @@
         // Preview PDF
         $(document).on('click', '.preview-pdf-btn', function(e) {
             e.preventDefault();
-            var pdfUrl = $(this).data('pdf-url');
+        var pdfUrl = $(this).data('pdf-url');
             
             // Clear iframe terlebih dahulu
             $('#pdfPreviewFrame').attr('src', '');
             
             // Set timeout untuk memastikan iframe sudah clear
             setTimeout(function() {
-                $('#pdfPreviewFrame').attr('src', pdfUrl);
+        $('#pdfPreviewFrame').attr('src', pdfUrl);
                 $('#pdfPreviewModal').modal('show');
             }, 100);
-        });
+    });
         
         // Handle modal close dengan benar
-        $('#pdfPreviewModal').on('hidden.bs.modal', function () {
+    $('#pdfPreviewModal').on('hidden.bs.modal', function () {
             // Clear iframe dengan timeout untuk menghindari error
             setTimeout(function() {
-                $('#pdfPreviewFrame').attr('src', '');
+        $('#pdfPreviewFrame').attr('src', '');
             }, 200);
         });
         
@@ -404,7 +402,7 @@
             if (iframe) {
                 iframe.style.height = '600px';
             }
-        });
+    });
     // Handler tombol Edit detail
     $(document).on('click', '.btnEditDetailNego', function() {
         var id = $(this).data('id');

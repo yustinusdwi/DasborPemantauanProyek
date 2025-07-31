@@ -14,11 +14,12 @@
     <style>
         .header-bar {
             background-color: #fff;
-            padding: 15px 30px;
+            padding: 8px 20px;
             border-bottom: 2px solid #dee2e6;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .nav-tabs.binder-tabs {
@@ -71,16 +72,16 @@
             background: linear-gradient(135deg, #dc3545, #c82333);
             border: none;
             color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 6px 14px;
+            border-radius: 18px;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: all 0.3s ease;
             box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
             text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
         .logout-btn:hover {
             background: linear-gradient(135deg, #c82333, #bd2130);
@@ -99,17 +100,17 @@
             background: linear-gradient(135deg, #007bff, #0056b3);
             border: none;
             color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 6px 14px;
+            border-radius: 18px;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: all 0.3s ease;
             box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
             text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-right: 10px;
+            gap: 6px;
+            margin-right: 8px;
         }
         .back-landing-btn:hover {
             background: linear-gradient(135deg, #0056b3, #004085);
@@ -126,7 +127,63 @@
         .header-buttons {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+        }
+        
+        /* Logo and text container improvements */
+        .header-bar .d-flex {
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header-bar .d-flex img {
+            transition: all 0.3s ease;
+        }
+        
+        .header-bar .d-flex span {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        /* Responsive header adjustments */
+        @media (max-width: 768px) {
+            .header-bar {
+                padding: 8px 12px;
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .header-bar .d-flex {
+                justify-content: center;
+            }
+            
+            .header-bar img {
+                height: 60px !important;
+                margin-right: 8px !important;
+            }
+            
+            .header-buttons {
+                flex-direction: column;
+                gap: 6px;
+                width: 100%;
+            }
+            
+            .back-landing-btn, .logout-btn {
+                width: 100%;
+                justify-content: center;
+                font-size: 0.8rem;
+                padding: 5px 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-bar img {
+                height: 50px !important;
+            }
+            
+            .fw-bold.fs-6 {
+                font-size: 0.9rem !important;
+            }
         }
     </style>
 </head>
@@ -134,8 +191,8 @@
 <body class="bg-light">
     <div class="header-bar">
         <div class="d-flex align-items-center">
-            <img src="/img/logo_imss_hd.jpg" alt="Logo IMSS" style="height:36px;width:auto;margin-right:14px;">
-            <span class="fw-bold fs-5">Administrator</span>
+            <img src="/img/imssMARKLENS-logo.png" alt="Logo IMSS" style="height:80px; width:auto; margin-right:12px; margin-top:0;">
+            <span class="fw-bold fs-6">Administrator</span>
         </div>
         <div class="header-buttons">
             <a href="{{ route('admin-landing') }}" class="back-landing-btn">

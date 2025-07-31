@@ -1,4 +1,5 @@
 @extends('layouts.app')
+<link rel="icon" type="image/x-icon" href="{{ asset('img/logo-imss-no-bg.png') }}" />
 @section('title', 'Dasbor Pemantauan Proyek | Kontrak')
 @section('content')
 <div class="container-fluid">
@@ -13,12 +14,39 @@
                     Data Seluruh Kontrak Saat Ini
                 </div>
                 <div class="card-body">
-                    <div class="mb-3" style="max-width:350px;">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                </div>
+                                <input type="text" id="searchKontrak" class="form-control" placeholder="Cari Kontrak, Pelanggan, Proyek, dll...">
                             </div>
-                            <input type="text" id="searchKontrak" class="form-control" placeholder="Cari Kontrak, Berkas, dll...">
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                </div>
+                                <select id="filterTahunKontrak" class="form-control">
+                                    <option value="">Semua Tahun</option>
+                                    @php
+                                        $tahunList = [];
+                                        foreach($kontrakData as $kontrak) {
+                                            if($kontrak['tanggal']) {
+                                                $tahun = \Carbon\Carbon::parse($kontrak['tanggal'])->format('Y');
+                                                if(!in_array($tahun, $tahunList)) {
+                                                    $tahunList[] = $tahun;
+                                                }
+                                            }
+                                        }
+                                        rsort($tahunList);
+                                    @endphp
+                                    @foreach($tahunList as $tahun)
+                                        <option value="{{ $tahun }}">{{ $tahun }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -45,7 +73,7 @@
                                     <td>{{ $kontrak['subkontraktor'] }}</td>
                                     <td>{{ $kontrak['tanggal'] ? \Carbon\Carbon::parse($kontrak['tanggal'])->format('d/m/Y') : '-' }}</td>
                                     <td>{{ $kontrak['batas_akhir'] ? \Carbon\Carbon::parse($kontrak['batas_akhir'])->format('d/m/Y') : '-' }}</td>
-                                    <td>{{ $kontrak['kode_proyek'] ?? '' }} - {{ $kontrak['nama_proyek'] ?? '' }}</td>
+                                    <td>{{ $kontrak['nama_proyek'] ?? '-' }}</td>
                                     <td>{{ $kontrak['uraian'] }}</td>
                                     <td>{{ \App\Http\Controllers\dashboardController::formatCurrency($kontrak['nilai_harga_total']) }}</td>
                                     <td>
@@ -90,7 +118,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="pdfPreviewModalLabel">Pratinjau Dokumen PDF</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" style="min-height:70vh;">
         <iframe id="pdfPreviewFrame" src="" width="100%" height="600px" style="border:none;"></iframe>
@@ -100,8 +128,120 @@
 </div>
 
 @push('scripts')
+<!-- DataTables CSS dan JS -->
+<link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet" crossorigin="anonymous" />
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js" crossorigin="anonymous"></script>
+
 <script>
 $(function() {
+    // Inisialisasi DataTable dengan fitur searching
+    if ($.fn.DataTable) {
+        $('#kontrakTable').DataTable({
+            "language": {
+                "decimal":        "",
+                "emptyTable":    "Tidak ada data yang tersedia",
+                "info":          "",
+                "infoEmpty":     "",
+                "infoFiltered":  "",
+                "infoPostFix":   "",
+                "thousands":     ",",
+                "lengthMenu":    "Tampilkan _MENU_ entri",
+                "loadingRecords": "Memuat...",
+                "processing":    "Memproses...",
+                "search":        "Cari:",
+                "zeroRecords":   "Tidak ditemukan data yang sesuai",
+                "paginate": {
+                    "first":      "Pertama",
+                    "last":       "Terakhir",
+                    "next":       "Selanjutnya",
+                    "previous":   "Sebelumnya"
+                },
+                "aria": {
+                    "sortAscending":  ": aktifkan untuk mengurutkan kolom naik",
+                    "sortDescending": ": aktifkan untuk mengurutkan kolom turun"
+                }
+            },
+            "pageLength": 10,
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+            "order": [[0, "asc"]],
+            "responsive": true,
+            "searching": true,
+            "info": false,
+            "paging": true,
+            "dom": 'rtip'
+        });
+    }
+    
+    // Custom search functionality untuk search box di atas tabel
+    $('#searchKontrak').on('keyup', function() {
+        var searchValue = $(this).val().toLowerCase();
+        var table = $('#kontrakTable').DataTable();
+        
+        if (table) {
+            table.search(searchValue).draw();
+        } else {
+            // Fallback untuk manual search jika DataTable tidak tersedia
+            var rows = $('#kontrakTable tbody tr');
+            rows.each(function() {
+                var rowText = $(this).text().toLowerCase();
+                if (rowText.indexOf(searchValue) > -1) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+    });
+    
+    // Filter tahun functionality
+    $('#filterTahunKontrak').on('change', function() {
+        var selectedYear = $(this).val();
+        var table = $('#kontrakTable').DataTable();
+        
+        if (table) {
+            if (selectedYear === '') {
+                // Tampilkan semua data
+                table.draw();
+            } else {
+                // Filter berdasarkan tahun
+                $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                    var tanggal = data[3]; // Kolom tanggal (index 3)
+                    if (tanggal && tanggal !== '-') {
+                        var tahun = tanggal.split('/')[2]; // Ambil tahun dari format dd/mm/yyyy
+                        return tahun === selectedYear;
+                    }
+                    return false;
+                });
+                table.draw();
+                $.fn.dataTable.ext.search.pop(); // Hapus filter setelah selesai
+            }
+        } else {
+            // Fallback untuk manual filter jika DataTable tidak tersedia
+            var rows = $('#kontrakTable tbody tr');
+            rows.each(function() {
+                var tanggalCell = $(this).find('td:eq(3)').text(); // Kolom tanggal
+                if (selectedYear === '' || (tanggalCell && tanggalCell !== '-' && tanggalCell.split('/')[2] === selectedYear)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        }
+    });
+    
+    // Clear search saat input dikosongkan
+    $('#searchKontrak').on('input', function() {
+        if ($(this).val() === '') {
+            var table = $('#kontrakTable').DataTable();
+            if (table) {
+                table.search('').draw();
+            } else {
+                $('#kontrakTable tbody tr').show();
+            }
+        }
+    });
+    
     // Handler tombol pratinjau PDF
     $(document).on('click', '.preview-pdf-btn', function(e) {
         e.preventDefault();
@@ -109,9 +249,11 @@ $(function() {
         $('#pdfPreviewFrame').attr('src', ''); // Clear dulu
         setTimeout(function() {
             $('#pdfPreviewFrame').attr('src', pdfUrl);
-            $('#pdfPreviewModal').modal('show');
+            var pdfModal = new bootstrap.Modal(document.getElementById('pdfPreviewModal'));
+            pdfModal.show();
         }, 100);
     });
+    
     // Bersihkan src saat modal ditutup
     $('#pdfPreviewModal').on('hidden.bs.modal', function () {
         setTimeout(function() {

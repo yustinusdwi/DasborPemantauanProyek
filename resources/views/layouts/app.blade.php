@@ -15,7 +15,8 @@
         <!-- Dashboard Styles -->
         <link href="{{ asset('css/styles.css') }}" rel="stylesheet" />
         <!-- <link href="{{ asset('css/modern-netflix.css') }}" rel="stylesheet" /> -->
-        <link href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css" rel="stylesheet" crossorigin="anonymous" />
+        <!-- DataTables CSS -->
+        <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet" crossorigin="anonymous" />
         <!-- <link href="{{ asset('css/datatables-netflix.css') }}" rel="stylesheet" /> -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
@@ -90,6 +91,71 @@
                 padding: 10px 18px;
                 font-size: 0.97em;
             }
+            
+            /* Sidebar Responsive Styles */
+            #layoutSidenav_nav {
+                transition: transform 0.3s ease-in-out;
+                position: fixed;
+                top: 56px;
+                left: 0;
+                height: calc(100vh - 56px);
+                z-index: 1030;
+                width: 225px;
+            }
+            
+            #layoutSidenav_content {
+                transition: margin-left 0.3s ease-in-out;
+                margin-left: 225px;
+                min-height: calc(100vh - 56px);
+            }
+            
+            /* Sidebar Hidden State */
+            .sidebar-hidden #layoutSidenav_nav {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar-hidden #layoutSidenav_content {
+                margin-left: 0;
+            }
+            
+            /* Responsive Breakpoints */
+            @media (max-width: 768px) {
+                #layoutSidenav_nav {
+                    width: 100%;
+                    transform: translateX(-100%);
+                }
+                
+                #layoutSidenav_content {
+                    margin-left: 0;
+                }
+                
+                .sidebar-visible #layoutSidenav_nav {
+                    transform: translateX(0);
+                }
+                
+                .sidebar-visible #layoutSidenav_content {
+                    margin-left: 0;
+                }
+                
+                /* Overlay for mobile */
+                .sidebar-visible .sb-sidenav-overlay {
+                    display: block;
+                    position: fixed;
+                    top: 56px;
+                    left: 0;
+                    width: 100%;
+                    height: calc(100vh - 56px);
+                    background: rgba(0,0,0,0.5);
+                    z-index: 1025;
+                }
+            }
+            
+            @media (min-width: 769px) {
+                .sb-sidenav-overlay {
+                    display: none !important;
+                }
+            }
+            
             /* Logout button styles */
             .logout-btn {
                 background: linear-gradient(135deg, #dc3545, #c82333);
@@ -164,10 +230,10 @@
         <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center" style="gap: 8px;">
                 <a class="navbar-brand d-flex align-items-center p-0 m-0" href="{{ route('dashboard') }}">
-                    <img src="{{ asset('img/logo_imss_hd-removebg.png') }}" alt="Logo IMSS Tanpa Latar Belakang" style="height:38px; width:auto; margin-right:0;">
+                    <img src="{{ asset('img/imssMARKLENS-logo.png') }}" alt="Logo IMSS Tanpa Latar Belakang" style="height:140px; width:auto; margin-right:0; margin-top:5px;">
                 </a>
                 <!-- Tombol garis bertumpuk vertikal untuk toggle sidebar -->
-                <button class="btn btn-link btn-sm p-0 m-0" id="sidebarToggle" style="font-size: 1.5rem; color: #222; line-height:1;" title="Tutup/Buka Sidebar">
+                <button class="btn btn-link btn-sm p-0 m-0" id="sidebarToggle" style="font-size: 1.5rem; color: #222; line-height:1;" title="Tutup/Buka Sidebar" data-bs-toggle="collapse" data-bs-target="#layoutSidenav_nav">
                     <span style="display: inline-block; line-height: 1;">
                         <span style="display: block; width: 24px; height: 3px; background: #222; margin: 4px 0; border-radius: 2px;"></span>
                         <span style="display: block; width: 24px; height: 3px; background: #222; margin: 4px 0; border-radius: 2px;"></span>
@@ -193,7 +259,7 @@
                         Logout
                     </a>
                 </div>
-            </div>
+                    </div>
         </nav>
         <div id="layoutSidenav">
             <div id="layoutSidenav_nav">
@@ -206,12 +272,12 @@
                                 Dasbor
                             </a>
                             {{-- Hapus menu Notifikasi Proyek dari sidebar --}}
-                            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseMonitoring" aria-expanded="false" aria-controls="collapseMonitoring">
+                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseMonitoring" aria-expanded="false" aria-controls="collapseMonitoring">
                                 <div class="sb-nav-link-icon"><i class="fas fa-chart-line"></i></div>
                                 Pemantauan Proyek
                                 <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                             </a>
-                            <div class="collapse" id="collapseMonitoring" aria-labelledby="headingOne" data-parent="#sidenavAccordion">
+                            <div class="collapse" id="collapseMonitoring" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                                 <nav class="sb-sidenav-menu-nested nav">
                                     <a class="nav-link" href="{{ route('spph.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-file-alt"></i></div>
@@ -270,9 +336,7 @@
                             <i class="fas fa-sign-out-alt me-2"></i>
                             Konfirmasi Logout
                         </h5>
-                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <p class="mb-0">
@@ -284,7 +348,7 @@
                         </p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                             <i class="fas fa-times me-2"></i>
                             Batal
                         </button>
@@ -301,18 +365,89 @@
         </div>
 
         <!-- Dashboard Scripts -->
-        <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
         <script src="{{ asset('js/scripts.js') }}"></script>
-        <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
-        <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js" crossorigin="anonymous"></script>
-        <!-- <script src="{{ asset('js/datatables-demo.js') }}"></script> -->
+        <!-- DataTables scripts dipindah ke halaman individual untuk menghindari konflik -->
         <script src="{{ asset('js/dashboard-controller.js') }}"></script>
         
         <script>
             function showLogoutConfirmation() {
-                $('#logoutModal').modal('show');
+                var logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
+                logoutModal.show();
             }
+            
+            // Sidebar Toggle Functionality
+            document.addEventListener('DOMContentLoaded', function() {
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                const layoutSidenav = document.getElementById('layoutSidenav');
+                const overlay = document.querySelector('.sb-sidenav-overlay');
+                
+                // Check if sidebar should be hidden by default on mobile
+                function checkMobileSidebar() {
+                    if (window.innerWidth <= 768) {
+                        layoutSidenav.classList.add('sidebar-hidden');
+                        layoutSidenav.classList.remove('sidebar-visible');
+                    } else {
+                        layoutSidenav.classList.remove('sidebar-hidden');
+                        layoutSidenav.classList.remove('sidebar-visible');
+                    }
+                }
+                
+                // Initial check
+                checkMobileSidebar();
+                
+                // Toggle sidebar
+                sidebarToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    if (window.innerWidth <= 768) {
+                        // Mobile behavior
+                        if (layoutSidenav.classList.contains('sidebar-hidden')) {
+                            layoutSidenav.classList.remove('sidebar-hidden');
+                            layoutSidenav.classList.add('sidebar-visible');
+                        } else {
+                            layoutSidenav.classList.add('sidebar-hidden');
+                            layoutSidenav.classList.remove('sidebar-visible');
+                        }
+                    } else {
+                        // Desktop behavior
+                        if (layoutSidenav.classList.contains('sidebar-hidden')) {
+                            layoutSidenav.classList.remove('sidebar-hidden');
+                        } else {
+                            layoutSidenav.classList.add('sidebar-hidden');
+                        }
+                    }
+                });
+                
+                // Close sidebar when clicking overlay on mobile
+                if (overlay) {
+                    overlay.addEventListener('click', function() {
+                        if (window.innerWidth <= 768) {
+                            layoutSidenav.classList.add('sidebar-hidden');
+                            layoutSidenav.classList.remove('sidebar-visible');
+                        }
+                    });
+                }
+                
+                // Handle window resize
+                window.addEventListener('resize', function() {
+                    checkMobileSidebar();
+                });
+                
+                // Close sidebar when clicking outside on mobile
+                document.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 768) {
+                        const isClickInsideSidebar = layoutSidenav.contains(e.target);
+                        const isClickOnToggle = sidebarToggle.contains(e.target);
+                        
+                        if (!isClickInsideSidebar && !isClickOnToggle && layoutSidenav.classList.contains('sidebar-visible')) {
+                            layoutSidenav.classList.add('sidebar-hidden');
+                            layoutSidenav.classList.remove('sidebar-visible');
+                        }
+                    }
+                });
+            });
         </script>
         
         @stack('scripts')

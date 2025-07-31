@@ -24,9 +24,42 @@
         <div class="card-body">
             <!-- Search Bar -->
             <div class="mb-4">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="searchBapp" class="form-control" placeholder="Cari Nomor BAPP, Nomor PO, Tanggal PO, Nama - Kode Proyek...">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" id="searchBapp" class="form-control" placeholder="Cari Nomor BAPP, Nomor PO, Tanggal PO, Kode - Nama Proyek...">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                            <select id="filterTahunBapp" class="form-control">
+                                <option value="">Semua Tahun</option>
+                                @php
+                                    $tahunList = [];
+                                    foreach($bapps as $bapp) {
+                                        if($bapp['tanggal_po']) {
+                                            $tahun = \Carbon\Carbon::parse($bapp['tanggal_po'])->format('Y');
+                                            if(!in_array($tahun, $tahunList)) {
+                                                $tahunList[] = $tahun;
+                                            }
+                                        }
+                                        if($bapp['tanggal_terima']) {
+                                            $tahun = \Carbon\Carbon::parse($bapp['tanggal_terima'])->format('Y');
+                                            if(!in_array($tahun, $tahunList)) {
+                                                $tahunList[] = $tahun;
+                                            }
+                                        }
+                                    }
+                                    rsort($tahunList);
+                                @endphp
+                                @foreach($tahunList as $tahun)
+                                    <option value="{{ $tahun }}">{{ $tahun }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -53,25 +86,46 @@
                         {{-- DataTables akan mengisi nomor urut otomatis pada kolom No --}}
                         @foreach($bapps as $key => $bapp)
                         <tr>
-                            <td></td> {{-- Kolom No, akan diisi otomatis oleh DataTables --}}
+                            <td>{{ $loop->iteration }}</td> {{-- Kolom No dengan nomor urut manual --}}
                             <td>{{ $bapp['nomor_bapp'] ?? '-' }}</td>
                             <td>{{ $bapp['no_po'] ?? '-' }}</td>
                             <td>{{ \Carbon\Carbon::parse($bapp['tanggal_po'])->format('d/m/Y') }}</td>
                             <td>{{ \Carbon\Carbon::parse($bapp['tanggal_terima'])->format('d/m/Y') }}</td>
-                            <td>{{ $bapp->kode_proyek ?? '' }} - {{ $bapp->nama_proyek ?? '' }}</td>
+                            <td>
+                                @php
+                                    $namaProyek = $bapp['nama_proyek'] ?? '';
+                                    // Jika nama_proyek mengandung format "Kode - Nama Proyek", tampilkan sesuai format
+                                    if (strpos($namaProyek, ' - ') !== false) {
+                                        echo $namaProyek;
+                                    } else {
+                                        // Jika tidak ada format kode, tampilkan nama proyek saja
+                                        echo $namaProyek ?: '-';
+                                    }
+                                @endphp
+                            </td>
                             <td>Rp {{ is_numeric($bapp['harga_total'] ?? null) ? number_format($bapp['harga_total'],0,',','.') : '-' }}</td>
                             <td>
                                 @php
                                     $berkas = $bapp['berkas_bapp'] ?? [];
+                                    // Pastikan berkas adalah array
                                     if (is_string($berkas)) {
                                         $berkas = json_decode($berkas, true) ?? [];
+                                    }
+                                    // Jika bukan array, buat array kosong
+                                    if (!is_array($berkas)) {
+                                        $berkas = [];
                                     }
                                 @endphp
                                 @if(is_array($berkas) && count($berkas) > 0)
                                     @foreach($berkas as $file)
                                         @if(isset($file['path']))
-                                            <button class="btn btn-sm btn-primary preview-bapp-btn mb-1" data-toggle="modal" data-target="#pdfPreviewModal" data-pdf-url="{{ asset('storage/' . $file['path']) }}">Pratinjau</button>
-                                            <span>{{ $file['name'] ?? '' }}</span><br>
+                                            <div class="mb-2">
+                                                <small class="text-muted d-block">{{ $file['name'] ?? '' }}</small>
+                                                <button type="button" class="btn btn-sm btn-primary preview-pdf-btn" 
+                                                        data-pdf-url="{{ asset('storage/' . $file['path']) }}">
+                                                    <i class="fa-solid fa-eye"></i> Pratinjau
+                                                </button>
+                                            </div>
                                         @endif
                                     @endforeach
                                 @else
@@ -86,34 +140,90 @@
         </div>
     </div>
 </div>
+<div class="d-flex align-items-center justify-content-end small">
+    <div class="text-muted">&copy; IT IMSS 2025</div>
+</div>
+@endsection
 
-{{-- Modal Preview PDF (pindahkan di luar container agar tidak terpotong) --}}
+<!-- Modal Preview PDF (letakkan di luar section) -->
 <div class="modal fade" id="pdfPreviewModal" tabindex="-1" aria-labelledby="pdfPreviewModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="pdfPreviewModalLabel">Pratinjau Dokumen PDF</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" style="min-height:70vh;">
         <iframe id="pdfPreviewFrame" src="" width="100%" height="600px" style="border:none;"></iframe>
       </div>
     </div>
   </div>
 </div>
-<div class="d-flex align-items-center justify-content-end small">
-    <div class="text-muted">&copy; IT IMSS 2025</div>
-</div>
+
 @push('scripts')
+<!-- DataTables CSS inline untuk Bootstrap 5 -->
+<style>
+.dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing, .dataTables_wrapper .dataTables_paginate {
+    color: #333;
+    margin-bottom: 10px;
+}
+.dataTables_wrapper .dataTables_length select {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 2px;
+}
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border: 1px solid #ddd;
+    padding: 4px 8px;
+    margin: 0 2px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #e9ecef;
+}
+.dataTables_wrapper .dataTables_info {
+    margin-top: 10px;
+}
+</style>
+
+<!-- DataTables Scripts dengan versi yang lebih stabil -->
+<script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
+
 <script>
 $(document).ready(function() {
+    // Cek apakah DataTables tersedia
+    if (typeof $.fn.DataTable === 'undefined') {
+        console.log('DataTables tidak tersedia, menggunakan tabel biasa');
+        // Fallback: buat tabel biasa dengan search manual
+        $('#searchBapp').on('keyup', function() {
+            var value = $(this).val().toLowerCase();
+            $('#bappTable tbody tr').filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+        return;
+    }
+    
+    // Inisialisasi DataTable
     var table = $('#bappTable').DataTable({
         "language": {
             "decimal":        "",
             "emptyTable":    "Tidak ada data yang tersedia",
-            "info":          "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-            "infoEmpty":     "Menampilkan 0 sampai 0 dari 0 entri",
-            "infoFiltered":  "(difilter dari _MAX_ total entri)",
+            "info":          "",
+            "infoEmpty":     "",
+            "infoFiltered":  "",
             "infoPostFix":   "",
             "thousands":     ",",
             "lengthMenu":    "Tampilkan _MENU_ entri",
@@ -134,18 +244,73 @@ $(document).ready(function() {
         },
         "pageLength": 10,
         "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
-        "order": [[0, "asc"]],
+        "order": [[1, "asc"]],
         "responsive": true,
+        "info": false,
+        "paging": true,
+        "searching": true,
+        "columnDefs": [
+            {
+                "targets": 0,
+                "searchable": false,
+                "orderable": false,
+                "className": "text-center"
+            }
+        ],
         dom: 'rtip'
     });
+    
+    // Update nomor urut saat data berubah
+    table.on('draw', function() {
+        table.column(0, {page: 'current'}).nodes().each(function(cell, i) {
+            cell.innerHTML = i + 1;
+        });
+    });
+    
+    // Search functionality
     $('#searchBapp').on('keyup', function() {
         table.search(this.value).draw();
     });
     
-    // Preview PDF - Perbaikan untuk menghindari error message channel
-    $(document).on('click', '.preview-bapp-btn', function(e) {
+    // Filter tahun functionality
+    $('#filterTahunBapp').on('change', function() {
+        var selectedYear = $(this).val();
+        
+        if (selectedYear === '') {
+            // Tampilkan semua data
+            table.draw();
+        } else {
+            // Filter berdasarkan tahun dari kolom tanggal PO atau tanggal terima
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                var tanggalPo = data[3]; // Kolom tanggal PO (index 3)
+                var tanggalTerima = data[4]; // Kolom tanggal terima (index 4)
+                
+                if (tanggalPo && tanggalPo !== '-') {
+                    var tahunPo = tanggalPo.split('/')[2]; // Ambil tahun dari format dd/mm/yyyy
+                    if (tahunPo === selectedYear) return true;
+                }
+                
+                if (tanggalTerima && tanggalTerima !== '-') {
+                    var tahunTerima = tanggalTerima.split('/')[2]; // Ambil tahun dari format dd/mm/yyyy
+                    if (tahunTerima === selectedYear) return true;
+                }
+                
+                return false;
+            });
+            table.draw();
+            $.fn.dataTable.ext.search.pop(); // Hapus filter setelah selesai
+        }
+    });
+    
+    // Handler tombol pratinjau PDF
+    $(document).on('click', '.preview-pdf-btn', function(e) {
         e.preventDefault();
         var pdfUrl = $(this).data('pdf-url');
+        
+        if (!pdfUrl) {
+            alert('URL PDF tidak valid');
+            return;
+        }
         
         // Clear iframe terlebih dahulu
         $('#pdfPreviewFrame').attr('src', '');
@@ -153,7 +318,8 @@ $(document).ready(function() {
         // Set timeout untuk memastikan iframe sudah clear
         setTimeout(function() {
             $('#pdfPreviewFrame').attr('src', pdfUrl);
-            $('#pdfPreviewModal').modal('show');
+            var pdfModal = new bootstrap.Modal(document.getElementById('pdfPreviewModal'));
+            pdfModal.show();
         }, 100);
     });
     
@@ -175,6 +341,4 @@ $(document).ready(function() {
     });
 });
 </script>
-@endpush
-
-@endsection 
+@endpush 

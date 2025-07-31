@@ -41,14 +41,24 @@ class BappController extends Controller
     public function index()
     {
         $bapps = Bapp::orderBy('created_at', 'desc')->get()->map(function($bapp) {
+            $berkas = $bapp->berkas_bapp;
+            // Pastikan berkas adalah array
+            if (is_string($berkas)) {
+                $berkas = json_decode($berkas, true);
+            }
+            // Jika bukan array atau null, buat array kosong
+            if (!is_array($berkas)) {
+                $berkas = [];
+            }
+            
             return [
                 'nomor_bapp' => $bapp->nomor_bapp ?? '',
                 'no_po' => $bapp->no_po ?? '',
                 'tanggal_po' => $bapp->tanggal_po ?? '',
                 'tanggal_terima' => $bapp->tanggal_terima ?? '',
-                'nama_proyek' => $bapp->nama_proyek ?? '',
+                'nama_proyek' => $bapp->nama_proyek ?? '', // Data sudah dalam format "Kode - Nama Proyek"
                 'harga_total' => $bapp->harga_total ?? '',
-                'berkas_bapp' => $bapp->berkas_bapp ?? '',
+                'berkas_bapp' => $berkas,
                 'tipe' => $bapp->tipe ?? '',
                 'id' => $bapp->id ?? '',
             ];
@@ -62,17 +72,23 @@ class BappController extends Controller
         if ($request->ajax() && $request->has('nama_proyek')) {
             $bapps = $query->get()->map(function($bapp) {
                 $berkas = $bapp->berkas_bapp;
+                // Pastikan berkas adalah array
                 if (is_string($berkas)) {
                     $berkas = json_decode($berkas, true);
                 }
+                // Jika bukan array atau null, buat array kosong
+                if (!is_array($berkas)) {
+                    $berkas = [];
+                }
+                
                 return [
                     'nomor_bapp' => $bapp->nomor_bapp ?? '',
                     'no_po' => $bapp->no_po ?? '',
                     'tanggal_po' => $bapp->tanggal_po ?? '',
                     'tanggal_terima' => $bapp->tanggal_terima ?? '',
-                    'nama_proyek' => $bapp->nama_proyek ?? '',
+                    'nama_proyek' => $bapp->nama_proyek ?? '', // Data sudah dalam format "Kode - Nama Proyek"
                     'harga_total' => $bapp->harga_total ?? '',
-                    'berkas_bapp' => $berkas ?? [],
+                    'berkas_bapp' => $berkas,
                     'tipe' => $bapp->tipe ?? '',
                     'id' => $bapp->id ?? '',
                 ];
@@ -81,17 +97,23 @@ class BappController extends Controller
         }
         $bapps = $query->get()->map(function($bapp) {
             $berkas = $bapp->berkas_bapp;
+            // Pastikan berkas adalah array
             if (is_string($berkas)) {
                 $berkas = json_decode($berkas, true);
             }
+            // Jika bukan array atau null, buat array kosong
+            if (!is_array($berkas)) {
+                $berkas = [];
+            }
+            
             return [
                 'nomor_bapp' => $bapp->nomor_bapp ?? '',
                 'no_po' => $bapp->no_po ?? '',
                 'tanggal_po' => $bapp->tanggal_po ?? '',
                 'tanggal_terima' => $bapp->tanggal_terima ?? '',
-                'nama_proyek' => $bapp->nama_proyek ?? '',
+                'nama_proyek' => $bapp->nama_proyek ?? '', // Data sudah dalam format "Kode - Nama Proyek"
                 'harga_total' => $bapp->harga_total ?? '',
-                'berkas_bapp' => $berkas ?? [],
+                'berkas_bapp' => $berkas,
                 'tipe' => $bapp->tipe ?? '',
                 'id' => $bapp->id ?? '',
             ];
@@ -108,17 +130,23 @@ class BappController extends Controller
                 ->get()
                 ->map(function($bapp) {
                     $berkas = $bapp->berkas_bapp;
+                    // Pastikan berkas adalah array
                     if (is_string($berkas)) {
                         $berkas = json_decode($berkas, true);
                     }
+                    // Jika bukan array atau null, buat array kosong
+                    if (!is_array($berkas)) {
+                        $berkas = [];
+                    }
+                    
                     return [
                         'nomor_bapp' => $bapp->nomor_bapp ?? '',
                         'no_po' => $bapp->no_po ?? '',
                         'tanggal_po' => $bapp->tanggal_po ?? '',
                         'tanggal_terima' => $bapp->tanggal_terima ?? '',
-                        'nama_proyek' => $bapp->nama_proyek ?? '',
+                        'nama_proyek' => $bapp->nama_proyek ?? '', // Data sudah dalam format "Kode - Nama Proyek"
                         'harga_total' => $bapp->harga_total ?? '',
-                        'berkas_bapp' => $berkas ?? [],
+                        'berkas_bapp' => $berkas,
                         'tipe' => $bapp->tipe ?? '',
                         'id' => $bapp->id ?? '',
                     ];
@@ -131,17 +159,23 @@ class BappController extends Controller
         }
         $bapps = Bapp::where('tipe', 'eksternal')->orderBy('created_at', 'desc')->get()->map(function($bapp) {
             $berkas = $bapp->berkas_bapp;
+            // Pastikan berkas adalah array
             if (is_string($berkas)) {
                 $berkas = json_decode($berkas, true);
             }
+            // Jika bukan array atau null, buat array kosong
+            if (!is_array($berkas)) {
+                $berkas = [];
+            }
+            
             return [
                 'nomor_bapp' => $bapp->nomor_bapp ?? '',
                 'no_po' => $bapp->no_po ?? '',
                 'tanggal_po' => $bapp->tanggal_po ?? '',
                 'tanggal_terima' => $bapp->tanggal_terima ?? '',
-                'nama_proyek' => $bapp->nama_proyek ?? '',
+                'nama_proyek' => $bapp->nama_proyek ?? '', // Data sudah dalam format "Kode - Nama Proyek"
                 'harga_total' => $bapp->harga_total ?? '',
-                'berkas_bapp' => $berkas ?? [],
+                'berkas_bapp' => $berkas,
                 'tipe' => $bapp->tipe ?? '',
                 'id' => $bapp->id ?? '',
             ];

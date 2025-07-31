@@ -11,6 +11,14 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        .header-bar {
+            background-color: #fff;
+            padding: 15px 30px;
+            border-bottom: 2px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
         .dataTables_empty {
             text-align: center !important;
             padding: 20px !important;
@@ -24,6 +32,13 @@
     </style>
 </head>
 <body class="bg-light">
+    <div class="header-bar mb-4">
+        <div class="d-flex align-items-center">
+            <img src="{{ asset('img/imssMARKLENS-logo.png') }}" alt="Logo IMSS" style="height:80px; width:auto; margin-right:12px; margin-top:0;">
+            <span class="fw-bold fs-6">Administrator</span>
+        </div>
+        <a href="{{ route('admin') }}" class="btn btn-outline-secondary">Kembali ke Admin</a>
+    </div>
     <div class="container py-4">
         <div class="card mb-4">
             <div class="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center">
@@ -161,26 +176,26 @@
         }
     });
 
-        // Preview PDF
+    // Preview PDF
         $(document).on('click', '.preview-pdf-btn', function(e) {
-            e.preventDefault();
-            var pdfUrl = $(this).data('pdf-url');
+        e.preventDefault();
+        var pdfUrl = $(this).data('pdf-url');
             
             // Clear iframe terlebih dahulu
             $('#pdfPreviewFrame').attr('src', '');
             
             // Set timeout untuk memastikan iframe sudah clear
             setTimeout(function() {
-                $('#pdfPreviewFrame').attr('src', pdfUrl);
-                $('#pdfPreviewModal').modal('show');
+        $('#pdfPreviewFrame').attr('src', pdfUrl);
+        $('#pdfPreviewModal').modal('show');
             }, 100);
-        });
+    });
         
         // Handle modal close dengan benar
-        $('#pdfPreviewModal').on('hidden.bs.modal', function () {
+    $('#pdfPreviewModal').on('hidden.bs.modal', function () {
             // Clear iframe dengan timeout untuk menghindari error
             setTimeout(function() {
-                $('#pdfPreviewFrame').attr('src', '');
+        $('#pdfPreviewFrame').attr('src', '');
             }, 200);
         });
         
@@ -191,7 +206,7 @@
             if (iframe) {
                 iframe.style.height = '600px';
             }
-        });
+    });
     // Edit LoI
     $(document).on('click', '.btnEditLoi', function() {
         var id = $(this).data('id');

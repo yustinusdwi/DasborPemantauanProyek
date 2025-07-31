@@ -22,14 +22,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 15px;
         }
         
         .landing-card {
             background: #fff;
             border-radius: 0.5rem;
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-            padding: 40px;
+            padding: 30px;
             text-align: center;
             max-width: 600px;
             width: 100%;
@@ -37,32 +37,32 @@
         }
         
         .logo-section {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         
         .logo-section img {
             height: 40px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
         
         .welcome-text {
             color: #333;
             font-size: 1.8rem;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .subtitle {
             color: #666;
             font-size: 1.1rem;
-            margin-bottom: 40px;
+            margin-bottom: 25px;
         }
         
         .user-info {
             background: #f8f9fa;
             padding: 10px 20px;
             border-radius: 25px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             display: inline-block;
             color: #495057;
             font-weight: 500;
@@ -73,7 +73,7 @@
             gap: 20px;
             justify-content: center;
             flex-wrap: wrap;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         
         .admin-btn {
@@ -155,6 +155,38 @@
             transform: translateY(0);
             box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
         }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .landing-card {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .logo-section img {
+                height: 120px;
+                transform: scale(1) !important;
+            }
+            
+            .welcome-text {
+                font-size: 1.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .button-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .admin-btn, .user-btn {
+                min-width: 180px;
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body class="bg-secondary d-flex flex-column min-vh-100">
@@ -169,7 +201,7 @@
     <div class="landing-container">
         <div class="landing-card">
             <div class="logo-section">
-                <img src="{{ asset('img/logo_imss_hd.jpg') }}" alt="Logo IMSS">
+                <img src="{{ asset('img/imssMARKLENS-logo.png') }}" alt="Logo IMSS" style="height: 150px; transform: scale(1.2);">
                 <div class="welcome-text">Selamat Datang, Admin!</div>
                 <div class="subtitle">Pilih tampilan yang ingin Anda akses</div>
             </div>

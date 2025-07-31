@@ -2,13 +2,69 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Sidebar hide/show logic */
+/* Sidebar Responsive Styles */
 #layoutSidenav_nav {
     transition: transform 0.3s cubic-bezier(.4,2,.6,1);
     will-change: transform;
+    position: fixed;
+    top: 56px;
+    left: 0;
+    height: calc(100vh - 56px);
+    z-index: 1030;
+    width: 225px;
 }
-.sidebar-hidden {
+
+#layoutSidenav_content {
+    transition: margin-left 0.3s cubic-bezier(.4,2,.6,1);
+    margin-left: 225px;
+    min-height: calc(100vh - 56px);
+}
+
+/* Sidebar States */
+.sidebar-hidden #layoutSidenav_nav {
     transform: translateX(-100%);
+}
+
+.sidebar-hidden #layoutSidenav_content {
+    margin-left: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    #layoutSidenav_nav {
+        width: 100%;
+        transform: translateX(-100%);
+    }
+    
+    #layoutSidenav_content {
+        margin-left: 0;
+    }
+    
+    .sidebar-visible #layoutSidenav_nav {
+        transform: translateX(0);
+    }
+    
+    .sidebar-visible #layoutSidenav_content {
+        margin-left: 0;
+    }
+    
+    /* Overlay for mobile */
+    .sidebar-visible .sb-sidenav-overlay {
+        display: block;
+        position: fixed;
+        top: 56px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 56px);
+        background: rgba(0,0,0,0.5);
+        z-index: 1025;
+    }
+}
+
+@media (min-width: 769px) {
+    .sb-sidenav-overlay {
+        display: none !important;
+    }
 }
 
 :root {

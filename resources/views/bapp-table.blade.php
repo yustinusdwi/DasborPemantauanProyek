@@ -9,8 +9,25 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        .header-bar {
+            background-color: #fff;
+            padding: 15px 30px;
+            border-bottom: 2px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
 </head>
 <body class="bg-light">
+    <div class="header-bar mb-4">
+        <div class="d-flex align-items-center">
+            <img src="{{ asset('img/imssMARKLENS-logo.png') }}" alt="Logo IMSS" style="height:80px; width:auto; margin-right:12px; margin-top:0;">
+            <span class="fw-bold fs-6">Administrator</span>
+        </div>
+        <a href="{{ route('admin') }}" class="btn btn-outline-secondary">Kembali ke Admin</a>
+    </div>
     <div class="container py-4">
         <div class="card mb-4">
             <div class="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center">
@@ -41,7 +58,18 @@
                                 <td>{{ $bapp->no_po }}</td>
                                 <td>{{ \Carbon\Carbon::parse($bapp->tanggal_po)->format('d/m/Y') }}</td>
                                 <td>{{ \Carbon\Carbon::parse($bapp->tanggal_terima)->format('d/m/Y') }}</td>
-                                <td>{{ $bapp->kode_proyek ?? '' }} - {{ $bapp->nama_proyek ?? '' }}</td>
+                                <td>
+                                    @php
+                                        $namaProyek = $bapp->nama_proyek ?? '';
+                                        // Jika nama_proyek mengandung format "Kode - Nama Proyek", tampilkan sesuai format
+                                        if (strpos($namaProyek, ' - ') !== false) {
+                                            echo $namaProyek;
+                                        } else {
+                                            // Jika tidak ada format kode, tampilkan nama proyek saja
+                                            echo $namaProyek ?: '-';
+                                        }
+                                    @endphp
+                                </td>
                                 <td>Rp {{ number_format($bapp->harga_total,0,',','.') }}</td>
                                 <td>
                                     @php
@@ -158,7 +186,50 @@
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script>
     $(function() {
-        $('#bappTable').DataTable();
+        var table = $('#bappTable').DataTable({
+            "language": {
+                "decimal":        "",
+                "emptyTable":    "Tidak ada data yang tersedia",
+                "info":          "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+                "infoEmpty":     "Menampilkan 0 sampai 0 dari 0 entri",
+                "infoFiltered":  "(difilter dari _MAX_ total entri)",
+                "infoPostFix":   "",
+                "thousands":     ",",
+                "lengthMenu":    "Tampilkan _MENU_ entri",
+                "loadingRecords": "Memuat...",
+                "processing":    "Memproses...",
+                "search":        "Cari:",
+                "zeroRecords":   "Tidak ditemukan data yang sesuai",
+                "paginate": {
+                    "first":      "Pertama",
+                    "last":       "Terakhir",
+                    "next":       "Selanjutnya",
+                    "previous":   "Sebelumnya"
+                },
+                "aria": {
+                    "sortAscending":  ": aktifkan untuk mengurutkan kolom naik",
+                    "sortDescending": ": aktifkan untuk mengurutkan kolom turun"
+                }
+            },
+            "pageLength": 10,
+            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+            "order": [[1, "asc"]], // Ubah order ke kolom nomor_bapp
+            "columnDefs": [
+                {
+                    "targets": 0,
+                    "searchable": false,
+                    "orderable": false,
+                    "className": "text-center"
+                }
+            ]
+        });
+        
+        // Update nomor urut saat data berubah
+        table.on('draw', function() {
+            table.column(0, {page: 'current'}).nodes().each(function(cell, i) {
+                cell.innerHTML = i + 1;
+            });
+        });
     });
     // Reset form saat klik Tambah BAPP
     $(document).on('click', '#btnTambahBapp', function() {
